@@ -74,7 +74,7 @@ class RootDevice : public Device {
         }
 
         virtual String get_topic_prefix() const override {
-            return model + "/" + get_unique_id() + "/";
+            return model + "/" + get_unique_id();
         }
 
         virtual const Device * get_parent_device() const override {
@@ -82,7 +82,7 @@ class RootDevice : public Device {
         }
 
         virtual String get_availability_topic() const override {
-            return get_topic_prefix() + "availability";
+            return get_topic_prefix() + "/availability";
         }
 
         virtual void begin() override;

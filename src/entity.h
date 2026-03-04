@@ -43,6 +43,10 @@ class Entity {
         Device & device;
         PicoMQTT::Client & get_mqtt() { return device.get_mqtt(); }
         virtual String get_platform() const = 0;
+
+        virtual String get_topic_prefix() const {
+            return device.get_topic_prefix() + "/" + identifier;
+        }
 };
 
 }

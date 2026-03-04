@@ -14,10 +14,6 @@ class Sensor: public Entity {
             : Entity(device, identifier, name)
         {}
 
-        virtual String get_state_topic() const {
-            return device.get_topic_prefix() + identifier;
-        }
-
         JsonDocument get_autodiscovery_json() const {
             JsonDocument json = Entity::get_autodiscovery_json();
             json["state_topic"] = get_state_topic();
@@ -45,6 +41,7 @@ class Sensor: public Entity {
 
     protected:
         virtual String get_platform() const override { return "sensor"; }
+        String get_state_topic() const { return get_topic_prefix(); }
 
         virtual T get() {
             return getter ? getter() : T();
