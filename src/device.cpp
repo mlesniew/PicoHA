@@ -96,6 +96,9 @@ void Device::autodiscovery() {
 }
 
 void RootDevice::begin() {
+    if (mqtt.client_id.isEmpty()) {
+        mqtt.client_id = get_unique_id();
+    }
 
     mqtt.will.topic = get_availability_topic();
     mqtt.will.payload = "offline";
