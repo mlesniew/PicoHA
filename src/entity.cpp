@@ -8,7 +8,11 @@ namespace PicoHA {
 Entity::Entity(Device & device, const String & identifier, const String & name)
     : device(device), identifier(PicoSlugify::slugify(identifier)), name(name), is_diagnostic(false),
       enabled_by_default(true) {
-    device.entities.push_back(this);
+    device.entities.insert(this);
+}
+
+Entity::~Entity() {
+    device.entities.erase(this);
 }
 
 JsonDocument Entity::get_autodiscovery_json() const {

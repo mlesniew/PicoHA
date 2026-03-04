@@ -13,6 +13,13 @@ class Device;
 class Entity {
     public:
         Entity(Device & device, const String & identifier, const String & name);
+        virtual ~Entity();
+
+        Entity(const Entity &) = delete;
+        Entity & operator=(const Entity &) = delete;
+
+        Entity(Entity &&) = delete;
+        Entity & operator=(Entity &&) = delete;
 
         virtual void begin() {}
         virtual void tick() {}

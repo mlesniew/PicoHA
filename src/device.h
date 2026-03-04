@@ -17,6 +17,14 @@ class Device {
             const String & name, const String & manufacturer,
             const String & model, const String & suggested_area);
 
+        virtual ~Device() {}
+
+        Device(const Device &) = delete;
+        Device & operator=(const Device &) = delete;
+
+        Device(Device &&) = delete;
+        Device & operator=(Device &&) = delete;
+
         JsonDocument get_autodiscovery_json() const;
 
         virtual String get_unique_id() const = 0;
@@ -41,12 +49,13 @@ class Device {
         unsigned long update_interval;
 
         friend class Entity;
+        friend class ChildDevice;
 
         virtual PicoMQTT::Client & get_mqtt() = 0;
 
     protected:
-        std::list<Device *> devices;
-        std::list<Entity *> entities;
+        std::set<Device *> devices;
+        std::set<Entity *> entities;
 
     private:
         unsigned long last_update;
@@ -92,6 +101,11 @@ class ChildDevice : public Device {
             const String & model, const String & suggested_area)
             : Device(name, manufacturer, model, suggested_area),
               parent(parent), identifier(PicoSlugify::slugify(identifier)) {
+            parent.devices.insert(this);
+        }
+
+        virtual ~ChildDevice() {
+            parent.devices.erase(this);
         }
 
         virtual String get_unique_id() const {
