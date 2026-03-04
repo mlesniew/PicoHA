@@ -19,9 +19,12 @@ JsonDocument Entity::get_autodiscovery_json() const {
     JsonDocument json;
     json["unique_id"] = get_unique_id();
     json["platform"] = get_platform();
-    json["name"] = name.length() ? name.c_str() : nullptr;
-    if (icon.length()) {
+    json["name"] = !name.isEmpty() ? name.c_str() : nullptr;
+    if (!icon.isEmpty()) {
         json["icon"] = "mdi:" + icon;
+    }
+    if (!device_class.isEmpty()) {
+        json["device_class"] = device_class;
     }
     if (is_diagnostic) {
         json["entity_category"] = "diagnostic";

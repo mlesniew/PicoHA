@@ -35,6 +35,7 @@ class Entity {
         const String identifier;
         String name;
         String icon;
+        String device_class;
         bool is_diagnostic;
         bool enabled_by_default;
 

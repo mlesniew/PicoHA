@@ -25,10 +25,12 @@ void setup() {
     mqtt.begin();
 
     binary_sensor.bind(&binarino);
+    binary_sensor.device_class = "power";
 
     uptime_sensor.bind([] { return millis() / 1000; });
     uptime_sensor.is_diagnostic = true;
     uptime_sensor.state_class = "total_increasing";
+    uptime_sensor.icon = "dog";
 
     device.begin();
 }
