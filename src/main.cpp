@@ -8,12 +8,12 @@ PicoUtils::WiFiControlSmartConfig wifi_control(wifi_led);
 
 PicoMQTT::Client mqtt;
 
-PicoHA::RootDevice device{mqtt, "PicoHA", "mlesniew", "picoha", "fire"};
+PicoHA::RootDevice device{mqtt, "PicoHA", "mlesniew", "picoha", ""};
 
 bool binarino;
 
 PicoHA::BinarySensor binary_sensor {device, "binarino", "Binarino"};
-PicoHA::Sensor<unsigned long> uptime_sensor{device, "uptime", "Uptime"};
+PicoHA::NumericSensor<unsigned long> uptime_sensor{device, "uptime", "Uptime"};
 
 void setup() {
     Serial.begin(115200);
@@ -25,8 +25,10 @@ void setup() {
     mqtt.begin();
 
     binary_sensor.bind(&binarino);
+
     uptime_sensor.bind([] { return millis() / 1000; });
     uptime_sensor.is_diagnostic = true;
+    uptime_sensor.state_class = "total_increasing";
 
     device.begin();
 }
