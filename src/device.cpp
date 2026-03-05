@@ -1,19 +1,19 @@
-#include <Arduino.h>
+#include "device.h"
 
+#include <Arduino.h>
 #include <PicoSlugify.h>
 
-#include "device.h"
 #include "entity.h"
 
 namespace PicoHA {
-Device::Device(
-    const String & name, const String & manufacturer,
-    const String & model, const String & suggested_area) : name(name),
-    manufacturer(manufacturer),
-    model(model),
-    suggested_area(suggested_area),
-    last_update(0), update_interval(1000) {
-}
+Device::Device(const String & name, const String & manufacturer,
+               const String & model, const String & suggested_area)
+    : name(name),
+      manufacturer(manufacturer),
+      model(model),
+      suggested_area(suggested_area),
+      last_update(0),
+      update_interval(1000) {}
 
 JsonDocument Device::get_autodiscovery_json() const {
     JsonDocument json;
@@ -54,7 +54,6 @@ void Device::begin() {
     for (Entity * e : entities) {
         e->begin();
     }
-
 }
 
 void Device::tick() {
@@ -116,4 +115,4 @@ void RootDevice::begin() {
     };
 }
 
-}
+}  // namespace PicoHA

@@ -1,5 +1,5 @@
-#include <PicoUtils.h>
 #include <PicoMQTT.h>
+#include <PicoUtils.h>
 
 #include "PicoHA.h"
 
@@ -12,7 +12,7 @@ PicoHA::RootDevice device{mqtt, "PicoHA", "mlesniew", "picoha", ""};
 
 bool binarino;
 
-PicoHA::BinarySensor binary_sensor {device, "binarino", "Binarino"};
+PicoHA::BinarySensor binary_sensor{device, "binarino", "Binarino"};
 PicoHA::NumericSensor<unsigned long> uptime_sensor{device, "uptime", "Uptime"};
 PicoHA::Event pingpong_event{device, "pingpong", "Ping Pong"};
 PicoHA::QueuedEvent reboot_event{device, "reboot", "Reboot"};

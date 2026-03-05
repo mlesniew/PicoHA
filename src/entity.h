@@ -11,42 +11,42 @@ namespace PicoHA {
 class Device;
 
 class Entity {
-    public:
-        Entity(Device & device, const String & identifier, const String & name);
-        virtual ~Entity();
+public:
+    Entity(Device &device, const String &identifier, const String &name);
+    virtual ~Entity();
 
-        Entity(const Entity &) = delete;
-        Entity & operator=(const Entity &) = delete;
+    Entity(const Entity &) = delete;
+    Entity &operator=(const Entity &) = delete;
 
-        Entity(Entity &&) = delete;
-        Entity & operator=(Entity &&) = delete;
+    Entity(Entity &&) = delete;
+    Entity &operator=(Entity &&) = delete;
 
-        virtual void begin() {}
-        virtual void tick() {}
-        virtual void fire() {}
+    virtual void begin() {}
+    virtual void tick() {}
+    virtual void fire() {}
 
-        virtual JsonDocument get_autodiscovery_json() const;
-        virtual String get_autodiscovery_topic() const;
+    virtual JsonDocument get_autodiscovery_json() const;
+    virtual String get_autodiscovery_topic() const;
 
-        virtual String get_unique_id() const;
+    virtual String get_unique_id() const;
 
-        void autodiscovery();
+    void autodiscovery();
 
-        const String identifier;
-        String name;
-        String icon;
-        String device_class;
-        bool is_diagnostic;
-        bool enabled_by_default;
+    const String identifier;
+    String name;
+    String icon;
+    String device_class;
+    bool is_diagnostic;
+    bool enabled_by_default;
 
-    protected:
-        Device & device;
-        PicoMQTT::Client & get_mqtt() { return device.get_mqtt(); }
-        virtual String get_platform() const = 0;
+protected:
+    Device &device;
+    PicoMQTT::Client &get_mqtt() { return device.get_mqtt(); }
+    virtual String get_platform() const = 0;
 
-        virtual String get_topic_prefix() const {
-            return device.get_topic_prefix() + "/" + identifier;
-        }
+    virtual String get_topic_prefix() const {
+        return device.get_topic_prefix() + "/" + identifier;
+    }
 };
 
-}
+}  // namespace PicoHA
