@@ -11,11 +11,22 @@ PicoMQTT::Client mqtt;
 PicoHA::RootDevice device{mqtt, "PicoHA", "mlesniew", "picoha", ""};
 
 bool binarino;
+String text = "PicoHA";
+String color = "Red";
+int power = 10;
 
 PicoHA::BinarySensor binary_sensor{device, "binarino", "Binarino"};
-PicoHA::NumericSensor<unsigned long> uptime_sensor{device, "uptime", "Uptime"};
+PicoHA::NumericSensor<size_t> text_lenght_sensor{device, "text_length",
+                                                 "Text Length"};
+
 PicoHA::Event pingpong_event{device, "pingpong", "Ping Pong"};
 PicoHA::QueuedEvent reboot_event{device, "reboot", "Reboot"};
+
+PicoHA::Switch onoff_switch{device, "onoff", "Toggle"};
+PicoHA::Text text_input{device, "text", "Text"};
+PicoHA::Button reset_button{device, "reset", "Reset"};
+PicoHA::Select input_select{device, "color", "Color"};
+PicoHA::Number<int> power_input{device, "power", "Power"};
 
 void setup() {
     Serial.begin(115200);
@@ -29,32 +40,50 @@ void setup() {
     binary_sensor.bind(&binarino);
     binary_sensor.device_class = "power";
 
-    uptime_sensor.bind([] { return millis() / 1000; });
-    uptime_sensor.is_diagnostic = true;
-    uptime_sensor.state_class = "total_increasing";
-    uptime_sensor.icon = "dog";
+    text_lenght_sensor.getter = [] { return text.length(); };
+    text_lenght_sensor.icon = "dog";
 
     pingpong_event.event_types = {"ping", "pong"};
 
+    onoff_switch.bind(&binarino);
+    text_input.bind(&text);
+
     reboot_event.trigger();
 
+    reset_button.on_press = [] {
+        text = "PicoHA";
+        color = "Red";
+        binarino = false;
+        power = 10;
+    };
+
+    input_select.options = {"Red", "Yellow", "Green"};
+    input_select.bind(&color);
+
+    power_input.bind(&power);
+
     device.begin();
+
+    Serial.println("Setup complete");
 }
 
 void loop() {
     wifi_control.tick();
     mqtt.loop();
     device.tick();
-    binarino = (millis() / 60000) % 2;
 
     {
         static unsigned long last_event = millis();
         static bool pong = false;
 
         if (millis() - last_event > 5000) {
+            Serial.println("Tick!");
+
             pingpong_event.trigger(pong ? "pong" : "ping");
             last_event = millis();
             pong = !pong;
+
+            binarino = !binarino;
         }
     }
 }

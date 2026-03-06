@@ -37,6 +37,15 @@ JsonDocument Entity::get_autodiscovery_json() const {
     json["default_entity_id"] = get_platform() + "." +
                                 device.get_default_entity_id_prefix() +
                                 identifier;
+
+    if (!get_state_topic().isEmpty()) {
+        json["state_topic"] = get_state_topic();
+    }
+
+    if (!get_command_topic().isEmpty()) {
+        json["command_topic"] = get_command_topic();
+    }
+
     return json;
 }
 
@@ -55,6 +64,12 @@ void Entity::autodiscovery() {
                                             measureJson(json), 0, true);
     serializeJson(json, publish);
     publish.send();
+}
+
+void EntityWithCommand::begin() {
+    get_mqtt().subscribe(get_command_topic(), [this](const String & payload) {
+        on_command(payload);
+    });
 }
 
 };  // namespace PicoHA

@@ -8,13 +8,11 @@ class BinarySensor : public Sensor<bool> {
 public:
     BinarySensor(Device & device, const String & identifier,
                  const String & name)
-        : Sensor(device, identifier, name) {}
+        : Entity(device, identifier, name),
+          Sensor<bool>(device, identifier, name) {}
 
 protected:
-    std::function<bool()> getter;
-
-    virtual void fire(const bool & new_value) override {
-        this->value = new_value;
+    virtual void publish() const override {
         get_mqtt().publish(get_state_topic(), value ? "ON" : "OFF");
     }
 

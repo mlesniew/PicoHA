@@ -13,7 +13,7 @@ Device::Device(const String & name, const String & manufacturer,
       model(model),
       suggested_area(suggested_area),
       last_update(0),
-      update_interval(1000) {}
+      update_interval(250) {}
 
 JsonDocument Device::get_autodiscovery_json() const {
     JsonDocument json;
@@ -51,6 +51,10 @@ String Device::get_default_entity_id_prefix() const {
 }
 
 void Device::begin() {
+    for (Device * d : devices) {
+        d->begin();
+    }
+
     for (Entity * e : entities) {
         e->begin();
     }
@@ -113,6 +117,8 @@ void RootDevice::begin() {
         // publish diagnostics right away
         fire();
     };
+
+    Device::begin();
 }
 
 }  // namespace PicoHA

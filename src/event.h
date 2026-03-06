@@ -13,7 +13,6 @@ public:
 
     virtual JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Entity::get_autodiscovery_json();
-        json["state_topic"] = get_state_topic();
         {
             unsigned int idx = 0;
             for (const String & event_type : event_types) {
@@ -23,17 +22,19 @@ public:
         return json;
     }
 
-    virtual void trigger(const String & event_type = "") {
-        get_mqtt().publish(get_state_topic(), event_type.isEmpty()
-                                                  ? this->identifier
-                                                  : event_type);
+    virtual void trigger(const String & event_type) {
+        get_mqtt().publish(get_state_topic(), event_type);
     }
+
+    void trigger() { trigger(this->identifier); }
 
     std::set<String> event_types;
 
 protected:
     virtual String get_platform() const override { return "event"; }
-    String get_state_topic() const { return get_topic_prefix(); }
+    virtual String get_state_topic() const override {
+        return get_topic_prefix();
+    }
 };
 
 class QueuedEvent : public Event {
@@ -46,7 +47,7 @@ public:
         while (get_mqtt().connected() && !pending_event_types.empty()) {
             auto it = event_types.begin();
             if (get_mqtt().publish(get_state_topic(), *it)) {
-                event_types.erase(it);
+                pending_event_types.erase(it);
             }
         }
     }
