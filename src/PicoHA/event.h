@@ -1,14 +1,15 @@
 #pragma once
 
-#include <entity.h>
-
 #include <set>
+
+#include "entity.h"
 
 namespace PicoHA {
 
 class Event : public Entity {
 public:
-    Event(Device & device, const String & identifier, const String & name)
+    Event(AbstractDevice & device, const String & identifier,
+          const String & name)
         : Entity(device, identifier, name), event_types({this->identifier}) {}
 
     virtual JsonDocument get_autodiscovery_json() const override {

@@ -11,26 +11,26 @@ namespace PicoHA {
 
 class Entity;
 
-class Device {
+class AbstractDevice {
 public:
-    Device(const String &name, const String &manufacturer, const String &model,
-           const String &suggested_area);
+    AbstractDevice(const String & name, const String & manufacturer,
+                   const String & model, const String & suggested_area);
 
-    virtual ~Device() {}
+    virtual ~AbstractDevice() {}
 
-    Device(const Device &) = delete;
-    Device &operator=(const Device &) = delete;
+    AbstractDevice(const AbstractDevice &) = delete;
+    AbstractDevice & operator=(const AbstractDevice &) = delete;
 
-    Device(Device &&) = delete;
-    Device &operator=(Device &&) = delete;
+    AbstractDevice(AbstractDevice &&) = delete;
+    AbstractDevice & operator=(AbstractDevice &&) = delete;
 
-    JsonDocument get_autodiscovery_json() const;
+    virtual JsonDocument get_autodiscovery_json() const;
 
     virtual String get_unique_id() const = 0;
     virtual String get_topic_prefix() const = 0;
 
     virtual String get_availability_topic() const = 0;
-    virtual const Device *get_parent_device() const = 0;
+    virtual const AbstractDevice * get_parent_device() const = 0;
 
     virtual String get_default_entity_id_prefix() const;
 
@@ -50,22 +50,25 @@ public:
     friend class Entity;
     friend class ChildDevice;
 
-    virtual PicoMQTT::Client &get_mqtt() = 0;
+    virtual PicoMQTT::Client & get_mqtt() = 0;
 
 protected:
-    std::set<Device *> devices;
+    std::set<AbstractDevice *> devices;
     std::set<Entity *> entities;
 
 private:
     unsigned long last_update;
 };
 
-class RootDevice : public Device {
+class Device : public AbstractDevice {
 public:
-    RootDevice(PicoMQTT::Client &mqtt, const String &name,
-               const String &manufacturer, const String &model,
-               const String &suggested_area)
-        : Device(name, manufacturer, model, suggested_area), mqtt(mqtt) {}
+    Device(PicoMQTT::Client & mqtt, const String & name,
+           const String & manufacturer, const String & model,
+           const String & suggested_area)
+        : AbstractDevice(name, manufacturer, model, suggested_area),
+          mqtt(mqtt) {}
+
+    virtual JsonDocument get_autodiscovery_json() const override;
 
     virtual String get_unique_id() const {
         return PicoSlugify::slugify(model) + "-" +
@@ -76,7 +79,9 @@ public:
         return model + "/" + get_unique_id();
     }
 
-    virtual const Device *get_parent_device() const override { return nullptr; }
+    virtual const AbstractDevice * get_parent_device() const override {
+        return nullptr;
+    }
 
     virtual String get_availability_topic() const override {
         return get_topic_prefix() + "/availability";
@@ -84,18 +89,18 @@ public:
 
     virtual void begin() override;
 
-    virtual PicoMQTT::Client &get_mqtt() override { return mqtt; }
+    virtual PicoMQTT::Client & get_mqtt() override { return mqtt; }
 
 protected:
-    PicoMQTT::Client &mqtt;
+    PicoMQTT::Client & mqtt;
 };
 
-class ChildDevice : public Device {
+class ChildDevice : public AbstractDevice {
 public:
-    ChildDevice(Device &parent, const String &identifier, const String &name,
-                const String &manufacturer, const String &model,
-                const String &suggested_area)
-        : Device(name, manufacturer, model, suggested_area),
+    ChildDevice(AbstractDevice & parent, const String & identifier,
+                const String & name, const String & manufacturer,
+                const String & model, const String & suggested_area)
+        : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
           identifier(PicoSlugify::slugify(identifier)) {
         parent.devices.insert(this);
@@ -108,18 +113,20 @@ public:
     }
 
     virtual String get_topic_prefix() const {
-        return parent.get_topic_prefix() + identifier + "/";
+        return parent.get_topic_prefix() + "/" + identifier;
     }
 
-    virtual const Device *get_parent_device() const override { return &parent; }
+    virtual const AbstractDevice * get_parent_device() const override {
+        return &parent;
+    }
 
     virtual String get_availability_topic() const {
         return parent.get_availability_topic();
     }
 
-    virtual PicoMQTT::Client &get_mqtt() override { return parent.get_mqtt(); }
+    virtual PicoMQTT::Client & get_mqtt() override { return parent.get_mqtt(); }
 
-    Device &parent;
+    AbstractDevice & parent;
     const String identifier;
 };
 

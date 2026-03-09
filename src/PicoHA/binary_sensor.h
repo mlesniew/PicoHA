@@ -6,7 +6,7 @@ namespace PicoHA {
 
 class BinarySensor : public Sensor<bool> {
 public:
-    BinarySensor(Device & device, const String & identifier,
+    BinarySensor(AbstractDevice & device, const String & identifier,
                  const String & name)
         : Entity(device, identifier, name),
           Sensor<bool>(device, identifier, name) {}

@@ -6,8 +6,9 @@
 #include "entity.h"
 
 namespace PicoHA {
-Device::Device(const String & name, const String & manufacturer,
-               const String & model, const String & suggested_area)
+AbstractDevice::AbstractDevice(const String & name, const String & manufacturer,
+                               const String & model,
+                               const String & suggested_area)
     : name(name),
       manufacturer(manufacturer),
       model(model),
@@ -15,7 +16,7 @@ Device::Device(const String & name, const String & manufacturer,
       last_update(0),
       update_interval(250) {}
 
-JsonDocument Device::get_autodiscovery_json() const {
+JsonDocument AbstractDevice::get_autodiscovery_json() const {
     JsonDocument json;
     json["name"] = name;
     json["identifiers"][0] = get_unique_id();
@@ -32,7 +33,7 @@ JsonDocument Device::get_autodiscovery_json() const {
         json["suggested_area"] = suggested_area;
     }
 
-    if (const Device * parent = get_parent_device()) {
+    if (const AbstractDevice * parent = get_parent_device()) {
         json["via_device"] = parent->get_unique_id();
     }
 
@@ -46,12 +47,25 @@ JsonDocument Device::get_autodiscovery_json() const {
     return json;
 }
 
-String Device::get_default_entity_id_prefix() const {
+JsonDocument Device::get_autodiscovery_json() const {
+    JsonDocument json = AbstractDevice::get_autodiscovery_json();
+
+    json["connections"][0][0] = "mac";
+    json["connections"][0][1] = WiFi.macAddress();
+    json["connections"][1][0] = "ip";
+    json["connections"][1][1] = WiFi.localIP();
+
+    json["sw_version"] = __DATE__ " " __TIME__;
+
+    return json;
+}
+
+String AbstractDevice::get_default_entity_id_prefix() const {
     return PicoSlugify::slugify(name) + "_";
 }
 
-void Device::begin() {
-    for (Device * d : devices) {
+void AbstractDevice::begin() {
+    for (AbstractDevice * d : devices) {
         d->begin();
     }
 
@@ -60,14 +74,14 @@ void Device::begin() {
     }
 }
 
-void Device::tick() {
+void AbstractDevice::tick() {
     if (millis() - last_update < update_interval) {
         return;
     }
 
     last_update = millis();
 
-    for (Device * d : devices) {
+    for (AbstractDevice * d : devices) {
         d->tick();
     }
 
@@ -76,10 +90,10 @@ void Device::tick() {
     }
 }
 
-void Device::fire() {
+void AbstractDevice::fire() {
     last_update = millis();
 
-    for (Device * d : devices) {
+    for (AbstractDevice * d : devices) {
         d->fire();
     }
 
@@ -88,8 +102,8 @@ void Device::fire() {
     }
 }
 
-void Device::autodiscovery() {
-    for (Device * d : devices) {
+void AbstractDevice::autodiscovery() {
+    for (AbstractDevice * d : devices) {
         d->autodiscovery();
     }
 
@@ -98,7 +112,7 @@ void Device::autodiscovery() {
     }
 }
 
-void RootDevice::begin() {
+void Device::begin() {
     if (mqtt.client_id.isEmpty()) {
         mqtt.client_id = get_unique_id();
     }
@@ -118,7 +132,7 @@ void RootDevice::begin() {
         fire();
     };
 
-    Device::begin();
+    AbstractDevice::begin();
 }
 
 }  // namespace PicoHA

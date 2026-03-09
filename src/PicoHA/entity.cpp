@@ -4,7 +4,8 @@
 
 namespace PicoHA {
 
-Entity::Entity(Device & device, const String & identifier, const String & name)
+Entity::Entity(AbstractDevice & device, const String & identifier,
+               const String & name)
     : device(device),
       identifier(PicoSlugify::slugify(identifier)),
       name(name),

@@ -8,11 +8,12 @@
 
 namespace PicoHA {
 
-class Device;
+class AbstractDevice;
 
 class Entity {
 public:
-    Entity(Device & device, const String & identifier, const String & name);
+    Entity(AbstractDevice & device, const String & identifier,
+           const String & name);
     virtual ~Entity();
 
     Entity(const Entity &) = delete;
@@ -40,7 +41,7 @@ public:
     bool enabled_by_default;
 
 protected:
-    Device & device;
+    AbstractDevice & device;
     PicoMQTT::Client & get_mqtt() const { return device.get_mqtt(); }
     virtual String get_platform() const = 0;
 
@@ -110,8 +111,8 @@ template <typename T>
 class EntityWithCommandAndState : public EntityWithCommand,
                                   public EntityWithState<T> {
 public:
-    EntityWithCommandAndState(Device & device, const String & identifier,
-                              const String & name)
+    EntityWithCommandAndState(AbstractDevice & device,
+                              const String & identifier, const String & name)
         : Entity(device, identifier, name),
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}

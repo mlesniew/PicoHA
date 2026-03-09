@@ -7,7 +7,7 @@ namespace PicoHA {
 template <typename T>
 class NumericSensor : public Sensor<T> {
 public:
-    NumericSensor(Device & device, const String & identifier,
+    NumericSensor(AbstractDevice & device, const String & identifier,
                   const String & name = "")
         : Entity(device, identifier, name),
           Sensor<T>(device, identifier, name),

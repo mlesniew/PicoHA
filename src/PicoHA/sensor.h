@@ -1,8 +1,8 @@
 #pragma once
 
-#include <entity.h>
-
 #include <functional>
+
+#include "entity.h"
 
 namespace PicoHA {
 

@@ -24,7 +24,7 @@ protected:
 template <typename T>
 class InputEntity : public EntityWithCommand, public EntityWithState<T> {
 public:
-    InputEntity(Device & device, const String & identifier, const String & name)
+    InputEntity(AbstractDevice & device, const String & identifier, const String & name)
         : Entity(device, identifier, name),
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
@@ -40,7 +40,7 @@ public:
 template <typename T>
 class Number : public InputEntity<T> {
 public:
-    Number(Device & device, const String & identifier, const String & name)
+    Number(AbstractDevice & device, const String & identifier, const String & name)
         : Entity(device, identifier, name),
           InputEntity<T>(device, identifier, name),
           min(1),
@@ -71,7 +71,7 @@ protected:
 
 class Text : public InputEntity<String> {
 public:
-    Text(Device & device, const String & identifier, const String & name)
+    Text(AbstractDevice & device, const String & identifier, const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name),
           min(0),
@@ -108,7 +108,7 @@ protected:
 
 class Switch : public InputEntity<bool> {
 public:
-    Switch(Device & device, const String & identifier, const String & name)
+    Switch(AbstractDevice & device, const String & identifier, const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
@@ -134,7 +134,7 @@ protected:
 
 class Select : public InputEntity<String> {
 public:
-    Select(Device & device, const String & identifier, const String & name)
+    Select(AbstractDevice & device, const String & identifier, const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
