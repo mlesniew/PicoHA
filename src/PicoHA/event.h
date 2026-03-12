@@ -1,7 +1,5 @@
 #pragma once
 
-#include <set>
-
 #include "entity.h"
 
 namespace PicoHA {
@@ -10,26 +8,19 @@ class Event : public Entity {
 public:
     Event(AbstractDevice & device, const String & identifier,
           const String & name)
-        : Entity(device, identifier, name), event_types({this->identifier}) {}
+        : Entity(device, identifier, name) {}
 
     virtual JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Entity::get_autodiscovery_json();
         {
-            unsigned int idx = 0;
-            for (const String & event_type : event_types) {
-                json["event_types"][idx++] = event_type;
-            }
+            json["event_types"][0] = identifier;
         }
         return json;
     }
 
-    virtual void trigger(const String & event_type) {
-        get_mqtt().publish(get_state_topic(), event_type);
+    virtual void trigger() {
+        get_mqtt().publish(get_state_topic(), identifier);
     }
-
-    void trigger() { trigger(this->identifier); }
-
-    std::set<String> event_types;
 
 protected:
     virtual String get_platform() const override { return "event"; }
@@ -40,26 +31,25 @@ protected:
 
 class QueuedEvent : public Event {
 public:
-    using Event::Event;
+    QueuedEvent(AbstractDevice & device, const String & identifier,
+                const String & name)
+        : Event(device, identifier, name), pending(false) {}
 
     virtual void tick() { fire(); }
 
     virtual void fire() override {
-        while (get_mqtt().connected() && !pending_event_types.empty()) {
-            auto it = event_types.begin();
-            if (get_mqtt().publish(get_state_topic(), *it)) {
-                pending_event_types.erase(it);
-            }
+        if (get_mqtt().connected() && pending) {
+            Event::trigger();
+            pending = false;
         }
     }
 
-    virtual void trigger(const String & event_type = "") override {
-        pending_event_types.insert(event_type.isEmpty() ? this->identifier
-                                                        : event_type);
+    virtual void trigger() override {
+        pending = true;
         fire();
     }
 
 protected:
-    std::set<String> pending_event_types;
+    bool pending;
 };
 };  // namespace PicoHA

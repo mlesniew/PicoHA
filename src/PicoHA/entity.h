@@ -33,6 +33,7 @@ public:
 
     void autodiscovery();
 
+    AbstractDevice & device;
     const String identifier;
     String name;
     String icon;
@@ -41,7 +42,6 @@ public:
     bool enabled_by_default;
 
 protected:
-    AbstractDevice & device;
     PicoMQTT::Client & get_mqtt() const { return device.get_mqtt(); }
     virtual String get_platform() const = 0;
 
@@ -66,12 +66,21 @@ protected:
 template <typename T>
 class EntityWithState : virtual public Entity {
 public:
-    using Entity::Entity;
+    EntityWithState(AbstractDevice & device, const String & identifier,
+                    const String & name)
+        : Entity(device, identifier, name),
+          update_interval(250),
+          last_update(0) {}
 
     void tick() override {
         if (!getter) {
             return;
         }
+
+        if (update_interval && (millis() - last_update < update_interval)) {
+            return;
+        }
+
         const T new_value = getter();
         if (new_value != value) {
             fire(new_value);
@@ -92,19 +101,23 @@ public:
 
     std::function<T()> getter;
 
+    unsigned long update_interval;
+
 protected:
+    T value;
+    unsigned long last_update;
+
     String get_state_topic() const { return getter ? get_topic_prefix() : ""; }
 
     void fire(const T & new_value) {
         value = new_value;
         publish();
+        last_update = millis();
     }
 
     virtual void publish() const {
         get_mqtt().publish(get_state_topic(), String(value));
     }
-
-    T value;
 };
 
 template <typename T>

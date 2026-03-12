@@ -37,7 +37,7 @@ JsonDocument Entity::get_autodiscovery_json() const {
     json["availability_topic"] = device.get_availability_topic();
     json["default_entity_id"] = get_platform() + "." +
                                 device.get_default_entity_id_prefix() +
-                                identifier;
+                                (name.isEmpty() ? "" : "_" + identifier);
 
     if (!get_state_topic().isEmpty()) {
         json["state_topic"] = get_state_topic();

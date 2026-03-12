@@ -40,12 +40,10 @@ public:
     void autodiscovery();
 
     const String identifier;
-    const String name;
-    const String manufacturer;
-    const String model;
-    const String suggested_area;
-
-    unsigned long update_interval;
+    String name;
+    String manufacturer;
+    String model;
+    String suggested_area;
 
     friend class Entity;
     friend class ChildDevice;
@@ -55,28 +53,39 @@ public:
 protected:
     std::set<AbstractDevice *> devices;
     std::set<Entity *> entities;
-
-private:
-    unsigned long last_update;
 };
 
 class Device : public AbstractDevice {
 public:
     Device(PicoMQTT::Client & mqtt, const String & name,
            const String & manufacturer, const String & model,
-           const String & suggested_area)
+           const String & suggested_area = "")
         : AbstractDevice(name, manufacturer, model, suggested_area),
-          mqtt(mqtt) {}
+          mqtt(mqtt),
+          last_autodiscovery_time(0) {}
 
     virtual JsonDocument get_autodiscovery_json() const override;
 
+    virtual void tick() override;
+
+    void add_diagnostic_entities();
+
+    String get_board_id() const {
+#ifdef ESP32
+        return String((uint32_t)(ESP.getEfuseMac() >> 24), HEX);
+#elif defined(ESP8266)
+        return String(ESP.getChipId(), HEX);
+#else
+#error "Unsupported platform"
+#endif
+    }
+
     virtual String get_unique_id() const {
-        return PicoSlugify::slugify(model) + "-" +
-               String((uint32_t)(ESP.getEfuseMac() >> 24), HEX);
+        return PicoSlugify::slugify(model, '-') + "-" + get_board_id();
     }
 
     virtual String get_topic_prefix() const override {
-        return model + "/" + get_unique_id();
+        return PicoSlugify::slugify(model, '-') + "/" + get_board_id();
     }
 
     virtual const AbstractDevice * get_parent_device() const override {
@@ -93,6 +102,7 @@ public:
 
 protected:
     PicoMQTT::Client & mqtt;
+    unsigned long last_autodiscovery_time;
 };
 
 class ChildDevice : public AbstractDevice {
@@ -102,7 +112,7 @@ public:
                 const String & model, const String & suggested_area)
         : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
-          identifier(PicoSlugify::slugify(identifier)) {
+          identifier(PicoSlugify::slugify(identifier, '-')) {
         parent.devices.insert(this);
     }
 
