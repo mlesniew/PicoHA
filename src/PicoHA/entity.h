@@ -27,9 +27,8 @@ public:
     virtual void fire() {}
 
     virtual JsonDocument get_autodiscovery_json() const;
-    virtual String get_autodiscovery_topic() const;
 
-    virtual String get_unique_id() const;
+    String get_unique_id() const;
 
     void autodiscovery();
 
@@ -45,12 +44,15 @@ protected:
     PicoMQTT::Client & get_mqtt() const { return device.get_mqtt(); }
     virtual String get_platform() const = 0;
 
-    virtual String get_topic_prefix() const {
+    String get_topic_prefix() const {
         return device.get_topic_prefix() + F("/") + identifier;
     }
 
     virtual String get_state_topic() const { return F(""); }
     virtual String get_command_topic() const { return F(""); }
+
+private:
+    String get_autodiscovery_topic() const;
 };
 
 class EntityWithCommand : virtual public Entity {
@@ -59,7 +61,9 @@ public:
     virtual void begin() override;
 
 protected:
-    String get_command_topic() const { return get_topic_prefix() + "/set"; }
+    virtual String get_command_topic() const override {
+        return get_topic_prefix() + F("/set");
+    }
     virtual void on_command(const String & command) = 0;
 };
 
@@ -120,17 +124,6 @@ protected:
     virtual void publish() const {
         get_mqtt().publish(get_state_topic(), String(value));
     }
-};
-
-template <typename T>
-class EntityWithCommandAndState : public EntityWithCommand,
-                                  public EntityWithState<T> {
-public:
-    EntityWithCommandAndState(AbstractDevice & device,
-                              const String & identifier, const String & name)
-        : Entity(device, identifier, name),
-          EntityWithCommand(device, identifier, name),
-          EntityWithState<T>(device, identifier, name) {}
 };
 
 }  // namespace PicoHA

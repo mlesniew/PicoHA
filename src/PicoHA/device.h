@@ -32,8 +32,6 @@ public:
     virtual String get_availability_topic() const = 0;
     virtual const AbstractDevice * get_parent_device() const = 0;
 
-    virtual String get_default_entity_id_prefix() const;
-
     virtual void begin();
     virtual void tick();
     virtual void fire();
@@ -51,6 +49,10 @@ public:
     virtual PicoMQTT::Client & get_mqtt() = 0;
 
 protected:
+    String get_default_entity_id_prefix() const {
+        return PicoSlugify::slugify(name);
+    }
+
     std::set<AbstractDevice *> devices;
     std::set<Entity *> entities;
 };
@@ -67,8 +69,6 @@ public:
     virtual JsonDocument get_autodiscovery_json() const override;
 
     virtual void tick() override;
-
-    void add_diagnostic_entities();
 
     String get_board_id() const {
 #ifdef ESP32
