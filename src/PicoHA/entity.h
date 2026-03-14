@@ -46,11 +46,11 @@ protected:
     virtual String get_platform() const = 0;
 
     virtual String get_topic_prefix() const {
-        return device.get_topic_prefix() + "/" + identifier;
+        return device.get_topic_prefix() + F("/") + identifier;
     }
 
-    virtual String get_state_topic() const { return ""; }
-    virtual String get_command_topic() const { return ""; }
+    virtual String get_state_topic() const { return F(""); }
+    virtual String get_command_topic() const { return F(""); }
 };
 
 class EntityWithCommand : virtual public Entity {
@@ -107,7 +107,9 @@ protected:
     T value;
     unsigned long last_update;
 
-    String get_state_topic() const { return getter ? get_topic_prefix() : ""; }
+    String get_state_topic() const {
+        return getter ? get_topic_prefix() : F("");
+    }
 
     void fire(const T & new_value) {
         value = new_value;

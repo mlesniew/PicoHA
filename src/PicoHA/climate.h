@@ -17,38 +17,38 @@ public:
     static String to_string(const Mode mode) {
         switch (mode) {
             case Mode::off:
-                return "off";
+                return F("off");
             case Mode::heat:
-                return "heat";
+                return F("heat");
             case Mode::automatic:
-                return "auto";
+                return F("auto");
             case Mode::cool:
-                return "cool";
+                return F("cool");
             case Mode::dry:
-                return "dry";
+                return F("dry");
             case Mode::fan_only:
-                return "fan_only";
+                return F("fan_only");
             default:
-                return "unknown";
+                return F("unknown");
         }
     }
 
     static String to_string(const Action action) {
         switch (action) {
             case Action::off:
-                return "off";
+                return F("off");
             case Action::heating:
-                return "heating";
+                return F("heating");
             case Action::cooling:
-                return "cooling";
+                return F("cooling");
             case Action::drying:
-                return "drying";
+                return F("drying");
             case Action::idle:
-                return "idle";
+                return F("idle");
             case Action::fan:
-                return "fan";
+                return F("fan");
             default:
-                return "unknown";
+                return F("unknown");
         }
     }
 
@@ -63,19 +63,19 @@ public:
                  Mode::fan_only}),
           power_watcher([this] { return power_getter ? power_getter() : true; },
                         [this](bool new_value) {
-                            get_mqtt().publish(get_topic_prefix() + "/power",
-                                               new_value ? "ON" : "OFF");
+                            get_mqtt().publish(get_topic_prefix() + F("/power"),
+                                               new_value ? F("ON") : F("OFF"));
                         }),
           mode_watcher(
               [this] { return mode_getter ? mode_getter() : Mode::off; },
               [this](Mode new_mode) {
-                  get_mqtt().publish(get_topic_prefix() + "/mode",
+                  get_mqtt().publish(get_topic_prefix() + F("/mode"),
                                      to_string(new_mode));
               }),
           action_watcher(
               [this] { return action_getter ? action_getter() : Action::off; },
               [this](Action new_action) {
-                  get_mqtt().publish(get_topic_prefix() + "/action",
+                  get_mqtt().publish(get_topic_prefix() + F("/action"),
                                      to_string(new_action));
               }),
           target_temperature_watcher(
@@ -85,8 +85,9 @@ public:
                              : std::numeric_limits<double>::quiet_NaN();
               },
               [this](double new_temperature) {
-                  get_mqtt().publish(get_topic_prefix() + "/target_temperature",
-                                     String(new_temperature, 2));
+                  get_mqtt().publish(
+                      get_topic_prefix() + F("/target_temperature"),
+                      String(new_temperature, 2));
               }),
           current_temperature_watcher(
               [this] {
@@ -96,7 +97,7 @@ public:
               },
               [this](double new_temperature) {
                   get_mqtt().publish(
-                      get_topic_prefix() + "/current_temperature",
+                      get_topic_prefix() + F("/current_temperature"),
                       String(new_temperature, 2));
               }) {}
 
@@ -105,48 +106,49 @@ public:
         {
             unsigned int idx = 0;
             for (const Mode mode : modes) {
-                json["modes"][idx++] = to_string(mode);
+                json[F("modes")][idx++] = to_string(mode);
             }
         }
         if (!std::isnan(min_temp)) {
-            json["min_temp"] = min_temp;
+            json[F("min_temp")] = min_temp;
         }
         if (!std::isnan(max_temp)) {
-            json["max_temp"] = max_temp;
+            json[F("max_temp")] = max_temp;
         }
         if (!std::isnan(temp_step)) {
-            json["temp_step"] = temp_step;
+            json[F("temp_step")] = temp_step;
         }
-        json["temperature_unit"] =
-            temperature_unit == TemperatureUnit::fahrenheit ? "F" : "C";
+        json[F("temperature_unit")] =
+            temperature_unit == TemperatureUnit::fahrenheit ? F("F") : F("C");
 
         if (action_getter) {
-            json["action_topic"] = get_topic_prefix() + "/action";
+            json[F("action_topic")] = get_topic_prefix() + F("/action");
         }
         if (power_getter) {
-            json["power_topic"] = get_topic_prefix() + "/power";
+            json[F("power_topic")] = get_topic_prefix() + F("/power");
         }
         if (mode_getter) {
-            json["mode_state_topic"] = get_topic_prefix() + "/mode";
+            json[F("mode_state_topic")] = get_topic_prefix() + F("/mode");
         }
         if (current_temperature_getter) {
-            json["current_temperature_topic"] =
-                get_topic_prefix() + "/current_temperature";
+            json[F("current_temperature_topic")] =
+                get_topic_prefix() + F("/current_temperature");
         }
         if (target_temperature_getter) {
-            json["tempertature_state_topic"] =
-                get_topic_prefix() + "/target_temperature";
+            json[F("target_temperature_topic")] =
+                get_topic_prefix() + F("/target_temperature");
         }
 
         if (power_setter) {
-            json["power_command_topic"] = get_topic_prefix() + "/power/set";
+            json[F("power_command_topic")] =
+                get_topic_prefix() + F("/power/set");
         }
         if (mode_setter) {
-            json["mode_command_topic"] = get_topic_prefix() + "/mode/set";
+            json[F("mode_command_topic")] = get_topic_prefix() + F("/mode/set");
         }
         if (target_temperature_setter) {
-            json["temperature_command_topic"] =
-                get_topic_prefix() + "/target_temperature/set";
+            json[F("temperature_command_topic")] =
+                get_topic_prefix() + F("/target_temperature/set");
         }
 
         return json;
@@ -154,20 +156,20 @@ public:
 
     void begin() override {
         if (power_setter) {
-            get_mqtt().subscribe(get_topic_prefix() + "/power/set",
+            get_mqtt().subscribe(get_topic_prefix() + F("/power/set"),
                                  [this](const String & payload) {
                                      if (!power_setter) return;
 
-                                     if (payload == "ON") {
+                                     if (payload == F("ON")) {
                                          power_setter(true);
-                                     } else if (payload == "OFF") {
+                                     } else if (payload == F("OFF")) {
                                          power_setter(false);
                                      }
                                  });
         }
 
         if (mode_setter) {
-            get_mqtt().subscribe(get_topic_prefix() + "/mode/set",
+            get_mqtt().subscribe(get_topic_prefix() + F("/mode/set"),
                                  [this](const String & payload) {
                                      if (!mode_setter) return;
 
@@ -182,7 +184,7 @@ public:
 
         if (target_temperature_setter) {
             get_mqtt().subscribe(
-                get_topic_prefix() + "/target_temperature/set",
+                get_topic_prefix() + F("/target_temperature/set"),
                 [this](const String & payload) {
                     if (!target_temperature_setter) return;
                     target_temperature_setter(payload.toDouble());
@@ -254,7 +256,7 @@ public:
     std::function<void(double)> target_temperature_setter;
 
 protected:
-    virtual String get_platform() const override { return "climate"; }
+    virtual String get_platform() const override { return F("climate"); }
 
     PicoUtils::Watch<bool> power_watcher;
     PicoUtils::Watch<Mode> mode_watcher;

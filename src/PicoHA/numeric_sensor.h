@@ -15,14 +15,15 @@ public:
 
     JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Sensor<T>::get_autodiscovery_json();
-        json["unit_of_measurement"] = unit_of_measurement.length()
-                                          ? unit_of_measurement.c_str()
-                                          : nullptr;
+        json[F("unit_of_measurement")] = unit_of_measurement.length()
+                                             ? unit_of_measurement.c_str()
+                                             : nullptr;
         if (suggested_display_precision >= 0) {
-            json["suggested_display_precision"] = suggested_display_precision;
+            json[F("suggested_display_precision")] =
+                suggested_display_precision;
         }
-        json["state_class"] =
-            state_class.length() ? state_class : "measurement";
+        json[F("state_class")] =
+            state_class.length() ? state_class : F("measurement");
         return json;
     }
 

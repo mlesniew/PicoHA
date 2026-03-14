@@ -12,9 +12,7 @@ public:
 
     virtual JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Entity::get_autodiscovery_json();
-        {
-            json["event_types"][0] = identifier;
-        }
+        json[F("event_types")][0] = identifier;
         return json;
     }
 
@@ -23,7 +21,7 @@ public:
     }
 
 protected:
-    virtual String get_platform() const override { return "event"; }
+    virtual String get_platform() const override { return F("event"); }
     virtual String get_state_topic() const override {
         return get_topic_prefix();
     }

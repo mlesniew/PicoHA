@@ -19,23 +19,23 @@ AbstractDevice::AbstractDevice(const String & name, const String & manufacturer,
 
 JsonDocument AbstractDevice::get_autodiscovery_json() const {
     JsonDocument json;
-    json["name"] = name;
-    json["identifiers"][0] = get_unique_id();
+    json[F("name")] = name;
+    json[F("identifiers")][0] = get_unique_id();
 
     if (manufacturer.length()) {
-        json["manufacturer"] = manufacturer;
+        json[F("manufacturer")] = manufacturer;
     }
 
     if (model.length()) {
-        json["model"] = model;
+        json[F("model")] = model;
     }
 
     if (suggested_area.length()) {
-        json["suggested_area"] = suggested_area;
+        json[F("suggested_area")] = suggested_area;
     }
 
     if (const AbstractDevice * parent = get_parent_device()) {
-        json["via_device"] = parent->get_unique_id();
+        json[F("via_device")] = parent->get_unique_id();
     }
 
     return json;
@@ -44,60 +44,62 @@ JsonDocument AbstractDevice::get_autodiscovery_json() const {
 JsonDocument Device::get_autodiscovery_json() const {
     JsonDocument json = AbstractDevice::get_autodiscovery_json();
 
-    json["connections"][0][0] = "mac";
-    json["connections"][0][1] = WiFi.macAddress();
-    json["connections"][1][0] = "ip";
-    json["connections"][1][1] = WiFi.localIP().toString();
+    json[F("connections")][0][0] = F("mac");
+    json[F("connections")][0][1] = WiFi.macAddress();
+    json[F("connections")][1][0] = F("ip");
+    json[F("connections")][1][1] = WiFi.localIP().toString();
 
-    json["sw_version"] = __DATE__ " " __TIME__;
+    json[F("sw_version")] = __DATE__ " " __TIME__;
 
     return json;
 }
 
 void Device::add_diagnostic_entities() {
-    QueuedEvent * reboot_event = new QueuedEvent(*this, "reboot", "Reboot");
-    reboot_event->icon = "restart";
+    QueuedEvent * reboot_event =
+        new QueuedEvent(*this, F("reboot"), F("Reboot"));
+    reboot_event->icon = F("restart");
     reboot_event->trigger();
     reboot_event->is_diagnostic = true;
 
-    Button * reset_button = new Button(*this, "reset", "Reset");
-    reset_button->icon = "restart";
+    Button * reset_button = new Button(*this, F("reset"), F("Reset"));
+    reset_button->icon = F("restart");
     reset_button->on_press = [] { ESP.restart(); };
     reset_button->is_diagnostic = true;
 
     NumericSensor<int> * free_heap_sensor =
-        new NumericSensor<int>(*this, "free_heap", "Free Heap");
-    free_heap_sensor->icon = "memory";
+        new NumericSensor<int>(*this, F("free_heap"), F("Free Heap"));
+    free_heap_sensor->icon = F("memory");
     free_heap_sensor->getter = [] { return ESP.getFreeHeap(); };
-    free_heap_sensor->unit_of_measurement = "B";
-    free_heap_sensor->device_class = "data_size";
+    free_heap_sensor->unit_of_measurement = F("B");
+    free_heap_sensor->device_class = F("data_size");
     free_heap_sensor->is_diagnostic = true;
     free_heap_sensor->update_interval = 60000;
 
     NumericSensor<int> * rssi_sensor =
-        new NumericSensor<int>(*this, "rssi", "WiFi RSSI");
-    rssi_sensor->icon = "signal";
+        new NumericSensor<int>(*this, F("rssi"), F("WiFi RSSI"));
+    rssi_sensor->icon = F("signal");
     rssi_sensor->getter = [] { return WiFi.RSSI(); };
-    rssi_sensor->unit_of_measurement = "dBm";
-    rssi_sensor->device_class = "signal_strength";
+    rssi_sensor->unit_of_measurement = F("dBm");
+    rssi_sensor->device_class = F("signal_strength");
     rssi_sensor->is_diagnostic = true;
     rssi_sensor->update_interval = 60000;
 
     Sensor<String> * ssid_sensor =
-        new Sensor<String>(*this, "wifi_ssid", "WiFi SSID");
-    ssid_sensor->icon = "wifi";
+        new Sensor<String>(*this, F("wifi_ssid"), F("WiFi SSID"));
+    ssid_sensor->icon = F("wifi");
     ssid_sensor->getter = [] { return WiFi.SSID(); };
     ssid_sensor->is_diagnostic = true;
 
     NumericSensor<unsigned char> * wifi_channel_sensor =
-        new NumericSensor<unsigned char>(*this, "wifi_channel", "WiFi Channel");
-    wifi_channel_sensor->icon = "wifi";
+        new NumericSensor<unsigned char>(*this, F("wifi_channel"),
+                                         F("WiFi Channel"));
+    wifi_channel_sensor->icon = F("wifi");
     wifi_channel_sensor->getter = [] { return WiFi.channel(); };
     wifi_channel_sensor->is_diagnostic = true;
 
     Sensor<String> * reset_reason_sensor =
-        new Sensor<String>(*this, "reset_reason", "Reset Reason");
-    reset_reason_sensor->icon = "timeline-question";
+        new Sensor<String>(*this, F("reset_reason"), F("Reset Reason"));
+    reset_reason_sensor->icon = F("timeline-question");
 #if defined(ESP8266)
     reset_reason_sensor->getter = [] {
         rst_info * info = ESP.getResetInfoPtr();
@@ -206,7 +208,7 @@ void Device::begin() {
     }
 
     mqtt.will.topic = get_availability_topic();
-    mqtt.will.payload = "offline";
+    mqtt.will.payload = F("offline");
     mqtt.will.retain = true;
 
     mqtt.connected_callback = [this] {
@@ -215,7 +217,7 @@ void Device::begin() {
         last_autodiscovery_time = millis();
 
         // notify about availability
-        mqtt.publish(get_availability_topic(), "online", 0, true);
+        mqtt.publish(get_availability_topic(), F("online"), 0, true);
 
         // publish right away
         fire();

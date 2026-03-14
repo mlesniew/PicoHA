@@ -93,7 +93,7 @@ public:
     }
 
     virtual String get_availability_topic() const override {
-        return get_topic_prefix() + "/availability";
+        return get_topic_prefix() + F("/availability");
     }
 
     virtual void begin() override;
@@ -119,11 +119,11 @@ public:
     virtual ~ChildDevice() { parent.devices.erase(this); }
 
     virtual String get_unique_id() const {
-        return parent.get_unique_id() + "-" + identifier;
+        return parent.get_unique_id() + F("-") + identifier;
     }
 
     virtual String get_topic_prefix() const {
-        return parent.get_topic_prefix() + "/" + identifier;
+        return parent.get_topic_prefix() + F("/") + identifier;
     }
 
     virtual const AbstractDevice * get_parent_device() const override {

@@ -15,7 +15,7 @@ public:
           EntityWithState<T>(device, identifier, name) {}
 
 protected:
-    virtual String get_platform() const override { return "sensor"; }
+    virtual String get_platform() const override { return F("sensor"); }
 };
 
 }  // namespace PicoHA

@@ -12,10 +12,10 @@ public:
     std::function<void()> on_press;
 
 protected:
-    virtual String get_platform() const override { return "button"; }
+    virtual String get_platform() const override { return F("button"); }
 
     virtual void on_command(const String & command) override {
-        if (on_press && command == "PRESS") {
+        if (on_press && command == F("PRESS")) {
             on_press();
         }
     }
@@ -24,7 +24,8 @@ protected:
 template <typename T>
 class InputEntity : public EntityWithCommand, public EntityWithState<T> {
 public:
-    InputEntity(AbstractDevice & device, const String & identifier, const String & name)
+    InputEntity(AbstractDevice & device, const String & identifier,
+                const String & name)
         : Entity(device, identifier, name),
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
@@ -40,7 +41,8 @@ public:
 template <typename T>
 class Number : public InputEntity<T> {
 public:
-    Number(AbstractDevice & device, const String & identifier, const String & name)
+    Number(AbstractDevice & device, const String & identifier,
+           const String & name)
         : Entity(device, identifier, name),
           InputEntity<T>(device, identifier, name),
           min(1),
@@ -49,9 +51,9 @@ public:
 
     virtual JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Entity::get_autodiscovery_json();
-        json["min"] = min;
-        json["max"] = max;
-        json["step"] = step;
+        json[F("min")] = min;
+        json[F("max")] = max;
+        json[F("step")] = step;
         return json;
     }
 
@@ -60,7 +62,7 @@ public:
     T step;
 
 protected:
-    virtual String get_platform() const override { return "number"; }
+    virtual String get_platform() const override { return F("number"); }
 
     virtual void on_command(const String & command) override {
         if (this->setter) {
@@ -71,7 +73,8 @@ protected:
 
 class Text : public InputEntity<String> {
 public:
-    Text(AbstractDevice & device, const String & identifier, const String & name)
+    Text(AbstractDevice & device, const String & identifier,
+         const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name),
           min(0),
@@ -80,13 +83,13 @@ public:
 
     virtual JsonDocument get_autodiscovery_json() const override {
         JsonDocument json = Entity::get_autodiscovery_json();
-        if (min) json["min"] = min;
-        if (max) json["max"] = max;
+        if (min) json[F("min")] = min;
+        if (max) json[F("max")] = max;
         if (!pattern.isEmpty()) {
-            json["pattern"] = pattern;
+            json[F("pattern")] = pattern;
         }
         if (is_password) {
-            json["mode"] = "password";
+            json[F("mode")] = F("password");
         }
         return json;
     }
@@ -97,7 +100,7 @@ public:
     bool is_password;
 
 protected:
-    virtual String get_platform() const override { return "text"; }
+    virtual String get_platform() const override { return F("text"); }
 
     virtual void on_command(const String & command) override {
         if (setter) {
@@ -108,33 +111,35 @@ protected:
 
 class Switch : public InputEntity<bool> {
 public:
-    Switch(AbstractDevice & device, const String & identifier, const String & name)
+    Switch(AbstractDevice & device, const String & identifier,
+           const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
 protected:
-    virtual String get_platform() const override { return "switch"; }
+    virtual String get_platform() const override { return F("switch"); }
 
     virtual void on_command(const String & command) override {
         if (!setter) {
             return;
         }
 
-        if (command == "ON") {
+        if (command == F("ON")) {
             setter(true);
-        } else if (command == "OFF") {
+        } else if (command == F("OFF")) {
             setter(false);
         }
     };
 
     virtual void publish() const override {
-        get_mqtt().publish(get_state_topic(), value ? "ON" : "OFF");
+        get_mqtt().publish(get_state_topic(), value ? F("ON") : F("OFF"));
     }
 };
 
 class Select : public InputEntity<String> {
 public:
-    Select(AbstractDevice & device, const String & identifier, const String & name)
+    Select(AbstractDevice & device, const String & identifier,
+           const String & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
@@ -143,7 +148,7 @@ public:
         {
             unsigned int idx = 0;
             for (const String & event_type : options) {
-                json["options"][idx++] = event_type;
+                json[F("options")][idx++] = event_type;
             }
         }
         return json;
@@ -152,7 +157,7 @@ public:
     std::set<String> options;
 
 protected:
-    virtual String get_platform() const override { return "select"; }
+    virtual String get_platform() const override { return F("select"); }
 
     virtual void on_command(const String & command) override {
         if (setter && options.find(command) != options.end()) {

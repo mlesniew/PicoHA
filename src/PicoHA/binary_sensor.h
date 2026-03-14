@@ -13,10 +13,10 @@ public:
 
 protected:
     virtual void publish() const override {
-        get_mqtt().publish(get_state_topic(), value ? "ON" : "OFF");
+        get_mqtt().publish(get_state_topic(), value ? F("ON") : F("OFF"));
     }
 
-    virtual String get_platform() const override { return "binary_sensor"; }
+    virtual String get_platform() const override { return F("binary_sensor"); }
 };
 
 }  // namespace PicoHA

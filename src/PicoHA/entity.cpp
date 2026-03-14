@@ -18,45 +18,45 @@ Entity::~Entity() { device.entities.erase(this); }
 
 JsonDocument Entity::get_autodiscovery_json() const {
     JsonDocument json;
-    json["unique_id"] = get_unique_id();
-    json["platform"] = get_platform();
-    json["name"] = !name.isEmpty() ? name.c_str() : nullptr;
+    json[F("unique_id")] = get_unique_id();
+    json[F("platform")] = get_platform();
+    json[F("name")] = !name.isEmpty() ? name.c_str() : nullptr;
     if (!icon.isEmpty()) {
-        json["icon"] = "mdi:" + icon;
+        json[F("icon")] = F("mdi:") + icon;
     }
     if (!device_class.isEmpty()) {
-        json["device_class"] = device_class;
+        json[F("device_class")] = device_class;
     }
     if (is_diagnostic) {
-        json["entity_category"] = "diagnostic";
+        json[F("entity_category")] = F("diagnostic");
     }
     if (!enabled_by_default) {
-        json[enabled_by_default] = false;
+        json[F("enabled_by_default")] = false;
     }
-    json["device"] = device.get_autodiscovery_json();
-    json["availability_topic"] = device.get_availability_topic();
-    json["default_entity_id"] = get_platform() + "." +
-                                device.get_default_entity_id_prefix() +
-                                (name.isEmpty() ? "" : "_" + identifier);
+    json[F("device")] = device.get_autodiscovery_json();
+    json[F("availability_topic")] = device.get_availability_topic();
+    json[F("default_entity_id")] =
+        get_platform() + F(".") + device.get_default_entity_id_prefix() +
+        (name.isEmpty() ? F("") : F("_") + identifier);
 
     if (!get_state_topic().isEmpty()) {
-        json["state_topic"] = get_state_topic();
+        json[F("state_topic")] = get_state_topic();
     }
 
     if (!get_command_topic().isEmpty()) {
-        json["command_topic"] = get_command_topic();
+        json[F("command_topic")] = get_command_topic();
     }
 
     return json;
 }
 
 String Entity::get_autodiscovery_topic() const {
-    return "homeassistant/" + get_platform() + "/" + get_unique_id() +
-           "/config";
+    return F("homeassistant/") + get_platform() + F("/") + get_unique_id() +
+           F("/config");
 }
 
 String Entity::get_unique_id() const {
-    return device.get_unique_id() + "-" + identifier;
+    return device.get_unique_id() + F("-") + identifier;
 }
 
 void Entity::autodiscovery() {
