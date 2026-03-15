@@ -122,7 +122,10 @@ protected:
     }
 
     virtual void publish() const {
-        get_mqtt().publish(get_state_topic(), String(value));
+        const String topic = get_state_topic();
+        if (!topic.isEmpty()) {
+            get_mqtt().publish(topic, String(value));
+        }
     }
 };
 
