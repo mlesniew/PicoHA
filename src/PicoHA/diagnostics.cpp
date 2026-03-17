@@ -27,6 +27,30 @@ void add_diagnostic_entities(Device & device) {
     free_heap_sensor->is_diagnostic = true;
     free_heap_sensor->update_interval = 60000;
 
+    NumericSensor<int> * min_free_heap_sensor =
+        new NumericSensor<int>(device, F("min_free_heap"), F("Min Free Heap"));
+    min_free_heap_sensor->icon = F("memory");
+    min_free_heap_sensor->getter = [] {
+        static uint32_t ret = ESP.getFreeHeap();
+        if (ESP.getFreeHeap() < ret) {
+            ret = ESP.getFreeHeap();
+        }
+        return ret;
+    };
+    min_free_heap_sensor->unit_of_measurement = F("B");
+    min_free_heap_sensor->device_class = F("data_size");
+    min_free_heap_sensor->is_diagnostic = true;
+    min_free_heap_sensor->update_interval = 1000;
+
+    NumericSensor<int> * max_free_block_sensor = new NumericSensor<int>(
+        device, F("max_free_block"), F("Max Free Block"));
+    max_free_block_sensor->icon = F("memory");
+    max_free_block_sensor->getter = [] { return ESP.getMaxFreeBlockSize(); };
+    max_free_block_sensor->unit_of_measurement = F("B");
+    max_free_block_sensor->device_class = F("data_size");
+    max_free_block_sensor->is_diagnostic = true;
+    max_free_block_sensor->update_interval = 60000;
+
     NumericSensor<int> * rssi_sensor =
         new NumericSensor<int>(device, F("rssi"), F("WiFi RSSI"));
     rssi_sensor->icon = F("signal");
