@@ -1,21 +1,18 @@
 #pragma once
 
 #include "sensor.h"
+#include "utils.h"
 
 namespace PicoHA {
 
-class BinarySensor : public Sensor<bool> {
+class BinarySensor : public Sensor<bool, to_string_default<bool>> {
 public:
     BinarySensor(AbstractDevice & device, const String & identifier,
                  const String & name)
         : Entity(device, identifier, name),
-          Sensor<bool>(device, identifier, name) {}
+          Sensor<bool, to_string_default<bool>>(device, identifier, name) {}
 
 protected:
-    virtual void publish() const override {
-        get_mqtt().publish(get_state_topic(), value ? F("ON") : F("OFF"));
-    }
-
     virtual String get_platform() const override { return F("binary_sensor"); }
 };
 

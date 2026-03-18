@@ -130,10 +130,6 @@ protected:
             setter(false);
         }
     };
-
-    virtual void publish() const override {
-        get_mqtt().publish(get_state_topic(), value ? F("ON") : F("OFF"));
-    }
 };
 
 class Select : public InputEntity<String> {

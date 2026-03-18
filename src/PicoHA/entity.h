@@ -5,6 +5,7 @@
 #include <PicoMQTT.h>
 
 #include "device.h"
+#include "utils.h"
 
 namespace PicoHA {
 
@@ -67,7 +68,7 @@ protected:
     virtual void on_command(const String & command) = 0;
 };
 
-template <typename T>
+template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class EntityWithState : virtual public Entity {
 public:
     EntityWithState(AbstractDevice & device, const String & identifier,
@@ -121,10 +122,10 @@ protected:
         last_update = millis();
     }
 
-    virtual void publish() const {
+    void publish() const {
         const String topic = get_state_topic();
         if (!topic.isEmpty()) {
-            get_mqtt().publish(topic, String(value));
+            get_mqtt().publish(topic, to_string(value));
         }
     }
 };

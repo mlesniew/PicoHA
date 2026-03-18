@@ -4,6 +4,62 @@
 #include "input.h"
 #include "sensor.h"
 
+namespace {
+
+#if defined(ESP8266)
+String reset_reason_to_string(const rst_reason reason) {
+    switch (reason) {
+        case REASON_DEFAULT_RST:
+            return F("power on");
+        case REASON_WDT_RST:
+            return F("watchdog");
+        case REASON_EXCEPTION_RST:
+            return F("exception");
+        case REASON_SOFT_WDT_RST:
+            return F("soft watchdog");
+        case REASON_SOFT_RESTART:
+            return F("software reset");
+        case REASON_DEEP_SLEEP_AWAKE:
+            return F("deep sleep wake");
+        case REASON_EXT_SYS_RST:
+            return F("external reset");
+        default:
+            return F("unknown");
+    };
+}
+#endif
+
+#ifdef ESP32
+String reset_reason_to_string(const esp_reset_reason_t reason) {
+    switch (reason) {
+        case ESP_RST_POWERON:
+            return "power_on";
+        case ESP_RST_EXT:
+            return "external_reset";
+        case ESP_RST_SW:
+            return "software_reset";
+        case ESP_RST_PANIC:
+            return "panic";
+        case ESP_RST_INT_WDT:
+            return "interrupt_watchdog";
+        case ESP_RST_TASK_WDT:
+            return "task_watchdog";
+        case ESP_RST_WDT:
+            return "watchdog";
+        case ESP_RST_DEEPSLEEP:
+            return "wake_from_deep_sleep";
+        case ESP_RST_BROWNOUT:
+            return "brownout";
+        case ESP_RST_SDIO:
+            return "sdio_reset";
+        default:
+            return "unknown";
+    }
+}
+#endif
+
+}  // namespace
+
 namespace PicoHA {
 
 void add_diagnostic_entities(Device & device) {
@@ -73,65 +129,27 @@ void add_diagnostic_entities(Device & device) {
     wifi_channel_sensor->getter = [] { return WiFi.channel(); };
     wifi_channel_sensor->is_diagnostic = true;
 
-    Sensor<String> * reset_reason_sensor =
-        new Sensor<String>(device, F("reset_reason"), F("Reset Reason"));
+#ifdef ESP8266
+    EnumSensor<rst_reason, reset_reason_to_string> * reset_reason_sensor =
+        new EnumSensor<rst_reason, reset_reason_to_string>(
+            device, F("reset_reason"), F("Reset Reason"));
     reset_reason_sensor->icon = F("timeline-question");
-#if defined(ESP8266)
     reset_reason_sensor->getter = [] {
         rst_info * info = ESP.getResetInfoPtr();
-
-        switch (info->reason) {
-            case REASON_DEFAULT_RST:
-                return F("power on");
-            case REASON_WDT_RST:
-                return F("watchdog");
-            case REASON_EXCEPTION_RST:
-                return F("exception");
-            case REASON_SOFT_WDT_RST:
-                return F("soft watchdog");
-            case REASON_SOFT_RESTART:
-                return F("software reset");
-            case REASON_DEEP_SLEEP_AWAKE:
-                return F("deep sleep wake");
-            case REASON_EXT_SYS_RST:
-                return F("external reset");
-            default:
-                return F("unknown");
-        };
+        return (rst_reason)info->reason;
     };
-#elif defined(ESP32)
-    reset_reason_sensor->getter = [] {
-        esp_reset_reason_t reason = esp_reset_reason();
-
-        switch (reason) {
-            case ESP_RST_POWERON:
-                return "power_on";
-            case ESP_RST_EXT:
-                return "external_reset";
-            case ESP_RST_SW:
-                return "software_reset";
-            case ESP_RST_PANIC:
-                return "panic";
-            case ESP_RST_INT_WDT:
-                return "interrupt_watchdog";
-            case ESP_RST_TASK_WDT:
-                return "task_watchdog";
-            case ESP_RST_WDT:
-                return "watchdog";
-            case ESP_RST_DEEPSLEEP:
-                return "wake_from_deep_sleep";
-            case ESP_RST_BROWNOUT:
-                return "brownout";
-            case ESP_RST_SDIO:
-                return "sdio_reset";
-            default:
-                return "unknown";
-        }
-    };
-#else
-#error "Unsupported platform"
-#endif
     reset_reason_sensor->is_diagnostic = true;
+#endif
+
+#ifdef ESP32
+    EnumSensor<esp_reset_reason_t, reset_reason_to_string> *
+        reset_reason_sensor =
+            new EnumSensor<esp_reset_reason_t, reset_reason_to_string>(
+                device, F("reset_reason"), F("Reset Reason"));
+    reset_reason_sensor->icon = F("timeline-question");
+    reset_reason_sensor->getter = [] { return ESP.getResetReason(); };
+    reset_reason_sensor->is_diagnostic = true;
+#endif
 }
 
 }  // namespace PicoHA

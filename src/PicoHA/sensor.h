@@ -6,13 +6,13 @@
 
 namespace PicoHA {
 
-template <typename T>
-class Sensor : public EntityWithState<T> {
+template <typename T, String (*to_string)(const T) = to_string_default<T>>
+class Sensor : public EntityWithState<T, to_string> {
 public:
     Sensor(AbstractDevice & device, const String & identifier,
            const String & name)
         : Entity(device, identifier, name),
-          EntityWithState<T>(device, identifier, name) {}
+          EntityWithState<T, to_string>(device, identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("sensor"); }
@@ -44,6 +44,15 @@ public:
     String unit_of_measurement;
     int suggested_display_precision;
     String state_class;
+};
+
+template <typename T, String (*to_string)(const T)>
+class EnumSensor : public Sensor<T, to_string> {
+public:
+    EnumSensor(AbstractDevice & device, const String & identifier,
+               const String & name = "")
+        : Entity(device, identifier, name),
+          Sensor<T, to_string>(device, identifier, name) {}
 };
 
 }  // namespace PicoHA
