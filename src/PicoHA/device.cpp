@@ -116,6 +116,10 @@ void Device::begin() {
 }
 
 void Device::tick() {
+    if (!mqtt.connected()) {
+        return;
+    }
+
     if (last_autodiscovery_time &&
         (millis() - last_autodiscovery_time >= 30 * 1000)) {
         // It's been 30 seconds since we last sent autodiscovery messages,
