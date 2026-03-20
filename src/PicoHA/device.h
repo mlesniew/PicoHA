@@ -7,14 +7,17 @@
 
 #include <list>
 
+#include "utils.h"
+
 namespace PicoHA {
 
 class Entity;
 
 class AbstractDevice {
 public:
-    AbstractDevice(const String & name, const String & manufacturer,
-                   const String & model, const String & suggested_area);
+    AbstractDevice(const SmartString & name, const SmartString & manufacturer,
+                   const SmartString & model,
+                   const SmartString & suggested_area);
 
     virtual ~AbstractDevice() {}
 
@@ -37,11 +40,11 @@ public:
     virtual void fire();
     void autodiscovery();
 
-    const String identifier;
-    String name;
-    String manufacturer;
-    String model;
-    String suggested_area;
+    const SmartString identifier;
+    SmartString name;
+    SmartString manufacturer;
+    SmartString model;
+    SmartString suggested_area;
 
     friend class Entity;
     friend class ChildDevice;
@@ -107,9 +110,9 @@ protected:
 
 class ChildDevice : public AbstractDevice {
 public:
-    ChildDevice(AbstractDevice & parent, const String & identifier,
-                const String & name, const String & manufacturer,
-                const String & model, const String & suggested_area)
+    ChildDevice(AbstractDevice & parent, const SmartString & identifier,
+                const SmartString & name, const SmartString & manufacturer,
+                const SmartString & model, const SmartString & suggested_area)
         : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
           identifier(PicoSlugify::slugify(identifier, '-')) {
@@ -137,7 +140,7 @@ public:
     virtual PicoMQTT::Client & get_mqtt() override { return parent.get_mqtt(); }
 
     AbstractDevice & parent;
-    const String identifier;
+    const SmartString identifier;
 };
 
 }  // namespace PicoHA

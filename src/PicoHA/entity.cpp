@@ -4,8 +4,8 @@
 
 namespace PicoHA {
 
-Entity::Entity(AbstractDevice & device, const String & identifier,
-               const String & name)
+Entity::Entity(AbstractDevice & device, const SmartString & identifier,
+               const SmartString & name)
     : device(device),
       identifier(PicoSlugify::slugify(identifier)),
       name(name),
@@ -20,7 +20,7 @@ JsonDocument Entity::get_autodiscovery_json() const {
     JsonDocument json;
     json[F("unique_id")] = get_unique_id();
     json[F("platform")] = get_platform();
-    json[F("name")] = !name.isEmpty() ? name.c_str() : nullptr;
+    json[F("name")] = !name.isEmpty() ? String(name).c_str() : nullptr;
     if (!icon.isEmpty()) {
         json[F("icon")] = F("mdi:") + icon;
     }

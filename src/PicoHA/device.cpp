@@ -6,9 +6,10 @@
 #include "entity.h"
 
 namespace PicoHA {
-AbstractDevice::AbstractDevice(const String & name, const String & manufacturer,
-                               const String & model,
-                               const String & suggested_area)
+AbstractDevice::AbstractDevice(const SmartString & name,
+                               const SmartString & manufacturer,
+                               const SmartString & model,
+                               const SmartString & suggested_area)
     : name(name),
       manufacturer(manufacturer),
       model(model),
@@ -19,15 +20,15 @@ JsonDocument AbstractDevice::get_autodiscovery_json() const {
     json[F("name")] = name;
     json[F("identifiers")][0] = get_unique_id();
 
-    if (manufacturer.length()) {
+    if (!manufacturer.isEmpty()) {
         json[F("manufacturer")] = manufacturer;
     }
 
-    if (model.length()) {
+    if (!model.isEmpty()) {
         json[F("model")] = model;
     }
 
-    if (suggested_area.length()) {
+    if (!suggested_area.isEmpty()) {
         json[F("suggested_area")] = suggested_area;
     }
 
