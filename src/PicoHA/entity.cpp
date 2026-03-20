@@ -51,8 +51,8 @@ JsonDocument Entity::get_autodiscovery_json() const {
 }
 
 String Entity::get_autodiscovery_topic() const {
-    return F("homeassistant/") + get_platform() + F("/") + get_unique_id() +
-           F("/config");
+    return String(F("homeassistant/")) + get_platform() + F("/") +
+           get_unique_id() + F("/config");
 }
 
 String Entity::get_unique_id() const {

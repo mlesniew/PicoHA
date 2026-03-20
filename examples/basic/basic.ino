@@ -46,6 +46,8 @@ void setup() {
     mqtt.host = "192.168.1.100";
     mqtt.begin();
 
+    PicoHA::add_diagnostic_entities(device);
+
     binary_sensor.bind(&binarino);
     binary_sensor.device_class = "power";
 

@@ -3,6 +3,11 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 
+extern "C" {
+extern const char _rodata_start;
+extern const char _rodata_end;
+}
+
 namespace PicoHA {
 
 template <typename T>
@@ -65,7 +70,7 @@ public:
     operator String() const {
         if (!ptr) return String();
 
-        if (is_flash(ptr)) {
+        if (is_literal(ptr)) {
             return String(reinterpret_cast<__FlashStringHelper *>(ptr));
         } else {
             return String(ptr);
@@ -76,12 +81,12 @@ public:
 
     bool isEmpty() const {
         return !ptr ||
-               (is_flash(ptr) ? (strlen_P(ptr) == 0) : (strlen(ptr) == 0));
+               (is_literal(ptr) ? (strlen_P(ptr) == 0) : (strlen(ptr) == 0));
     }
 
 private:
     void clear() {
-        if (ptr && !is_flash(ptr)) {
+        if (ptr && !is_literal(ptr)) {
             free(ptr);
         }
         ptr = nullptr;
@@ -91,7 +96,7 @@ private:
         clear();
 
         if (s) {
-            if (is_flash(s)) {
+            if (is_literal(s)) {
                 ptr = const_cast<char *>(s);
             } else {
                 ptr = strdup(s);
@@ -99,14 +104,21 @@ private:
         }
     }
 
-    static bool is_flash(const char * ptr) {
+#if defined(ESP8266)
+    static bool is_literal(const char * ptr) {
         return ptr >=
                (const char *)0x40200000;  // && ptr < (const char *)0x40300000;
     }
+#elif defined(ESP32)
+    static bool is_literal(const char * ptr) {
+        return ptr >= &_rodata_start && ptr < &_rodata_end;
+    }
+#endif
 
     char * ptr;
 };
 
+#ifdef ESP8266
 inline String operator+(const String & a, const SmartString & b) {
     return a + String(b);
 }
@@ -122,6 +134,7 @@ inline String operator+(const SmartString & a, const SmartString & b) {
 inline String operator+(const SmartString & a, const __FlashStringHelper * b) {
     return String(a) + String(b);
 }
+#endif
 
 inline String operator+(const __FlashStringHelper * a, const SmartString & b) {
     return String(a) + String(b);
