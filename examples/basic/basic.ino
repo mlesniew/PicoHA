@@ -56,8 +56,6 @@ void setup() {
     text_lenght_sensor.getter = [] { return text.length(); };
     text_lenght_sensor.icon = "dog";
 
-    pingpong_event.event_types = {"ping", "pong"};
-
     onoff_switch.bind(&binarino);
     text_input.bind(&text);
 
@@ -107,14 +105,12 @@ void loop() {
 
     {
         static unsigned long last_event = millis();
-        static bool pong = false;
 
         if (millis() - last_event > 5000) {
             Serial.println("Tick!");
 
-            pingpong_event.trigger(pong ? "pong" : "ping");
+            pingpong_event.trigger();
             last_event = millis();
-            pong = !pong;
 
             binarino = !binarino;
 

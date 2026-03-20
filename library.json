@@ -1,0 +1,28 @@
+{
+  "name": "PicoHA",
+  "version": "0.0.1",
+  "description": "Home Assistant MQTT integration helper for ESP8266 and ESP32.",
+  "keywords": "home-assistant, mqtt, esp8266, esp32, iot",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mlesniew/PicoHA.git"
+  },
+  "authors": [
+    {
+      "name": "Michał Leśniewski",
+      "email": "mlesniew@gmail.com",
+      "url": "https://github.com/mlesniew"
+    }
+  ],
+  "frameworks": "arduino",
+  "platforms": [
+    "espressif8266",
+    "espressif32"
+  ],
+  "dependencies": {
+    "bblanchon/ArduinoJson": "^7.0.0",
+    "mlesniew/PicoMQTT": "^1.0.0",
+    "PicoUtils": "https://github.com/mlesniew/PicoUtils.git",
+    "PicoSlugify": "https://github.com/mlesniew/PicoSlugify.git"
+  }
+}
