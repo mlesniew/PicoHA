@@ -47,51 +47,23 @@ Climate::Climate(AbstractDevice & device, const String & identifier,
       max_temp(std::numeric_limits<double>::quiet_NaN()),
       temp_step(std::numeric_limits<double>::quiet_NaN()),
       temperature_unit(TemperatureUnit::celsius),
-      modes({Mode::off, Mode::heat, Mode::automatic, Mode::cool, Mode::dry,
+      modes({Mode::off | Mode::heat | Mode::automatic | Mode::cool | Mode::dry |
              Mode::fan_only}),
-      power_watcher([this] { return power_getter ? power_getter() : true; },
-                    [this](bool new_value) {
-                        get_mqtt().publish(get_topic_prefix() + F("/power"),
-                                           new_value ? F("ON") : F("OFF"));
-                    }),
-      mode_watcher([this] { return mode_getter ? mode_getter() : Mode::off; },
-                   [this](Mode new_mode) {
-                       get_mqtt().publish(get_topic_prefix() + F("/mode"),
-                                          to_string(new_mode));
-                   }),
-      action_watcher(
-          [this] { return action_getter ? action_getter() : Action::off; },
-          [this](Action new_action) {
-              get_mqtt().publish(get_topic_prefix() + F("/action"),
-                                 to_string(new_action));
-          }),
-      target_temperature_watcher(
-          [this] {
-              return target_temperature_getter
-                         ? target_temperature_getter()
-                         : std::numeric_limits<double>::quiet_NaN();
-          },
-          [this](double new_temperature) {
-              get_mqtt().publish(get_topic_prefix() + F("/target_temperature"),
-                                 String(new_temperature, 2));
-          }),
-      current_temperature_watcher(
-          [this] {
-              return current_temperature_getter
-                         ? current_temperature_getter()
-                         : std::numeric_limits<double>::quiet_NaN();
-          },
-          [this](double new_temperature) {
-              get_mqtt().publish(get_topic_prefix() + F("/current_temperature"),
-                                 String(new_temperature, 2));
-          }) {}
+      power(false),
+      mode(Mode::off),
+      action(Action::off),
+      target_temperature(std::numeric_limits<double>::quiet_NaN()),
+      current_temperature(std::numeric_limits<double>::quiet_NaN()) {}
 
 JsonDocument Climate::get_autodiscovery_json() const {
     JsonDocument json = Entity::get_autodiscovery_json();
     {
         unsigned int idx = 0;
-        for (const Mode mode : modes) {
-            json[F("modes")][idx++] = to_string(mode);
+        for (unsigned char mode_bit = 1; mode_bit != 0; mode_bit <<= 1) {
+            if ((static_cast<unsigned char>(modes) & mode_bit) != 0) {
+                json[F("modes")][idx++] =
+                    to_string(static_cast<Mode>(mode_bit));
+            }
         }
     }
     if (!std::isnan(min_temp)) {
@@ -153,17 +125,23 @@ void Climate::begin() {
     }
 
     if (mode_setter) {
-        get_mqtt().subscribe(get_topic_prefix() + F("/mode/set"),
-                             [this](const String & payload) {
-                                 if (!mode_setter) return;
+        get_mqtt().subscribe(
+            get_topic_prefix() + F("/mode/set"),
+            [this](const String & payload) {
+                if (!mode_setter) return;
 
-                                 for (const Mode mode : modes) {
-                                     if (payload == to_string(mode)) {
-                                         mode_setter(mode);
-                                         break;
-                                     }
-                                 }
-                             });
+                for (unsigned char mode_bit = 1; mode_bit != 0;
+                     mode_bit <<= 1) {
+                    if ((static_cast<unsigned char>(modes) & mode_bit) != 0) {
+                        Climate::Mode mode =
+                            static_cast<Climate::Mode>(mode_bit);
+                        if (payload == to_string(mode)) {
+                            mode_setter(mode);
+                            break;
+                        }
+                    }
+                }
+            });
     }
 
     if (target_temperature_setter) {
@@ -176,19 +154,93 @@ void Climate::begin() {
 }
 
 void Climate::tick() {
-    power_watcher.tick();
-    mode_watcher.tick();
-    action_watcher.tick();
-    target_temperature_watcher.tick();
-    current_temperature_watcher.tick();
+    if (power_getter) {
+        bool new_power = power_getter();
+        if (new_power != power) {
+            publish_power(new_power);
+        }
+    }
+
+    if (mode_getter) {
+        Mode new_mode = mode_getter();
+        if (new_mode != mode) {
+            publish_mode(new_mode);
+        }
+    }
+
+    if (action_getter) {
+        Action new_action = action_getter();
+        if (new_action != action) {
+            publish_action(new_action);
+        }
+    }
+
+    if (target_temperature_getter) {
+        double new_target_temperature = target_temperature_getter();
+        if ((std::isnan(new_target_temperature) !=
+             std::isnan(target_temperature)) ||
+            ((!std::isnan(new_target_temperature) &&
+              std::abs(new_target_temperature - target_temperature) >= 0.01))) {
+            publish_target_temperature(target_temperature);
+        }
+    }
+
+    if (current_temperature_getter) {
+        double new_current_temperature = current_temperature_getter();
+        if ((std::isnan(new_current_temperature) !=
+             std::isnan(current_temperature)) ||
+            ((!std::isnan(new_current_temperature) &&
+              std::abs(new_current_temperature - current_temperature) >=
+                  0.01))) {
+            publish_current_temperature(current_temperature);
+        }
+    }
 }
 
 void Climate::fire() {
-    if (power_getter) power_watcher.fire();
-    if (mode_getter) mode_watcher.fire();
-    if (action_getter) action_watcher.fire();
-    if (target_temperature_getter) target_temperature_watcher.fire();
-    if (current_temperature_getter) current_temperature_watcher.fire();
+    if (power_getter) {
+        publish_power(power_getter());
+    }
+    if (mode_getter) {
+        publish_mode(mode_getter());
+    }
+    if (action_getter) {
+        publish_action(action_getter());
+    }
+    if (target_temperature_getter) {
+        publish_target_temperature(target_temperature_getter());
+    }
+    if (current_temperature_getter) {
+        publish_current_temperature(current_temperature_getter());
+    }
+}
+
+void Climate::publish_power(bool new_power) {
+    power = new_power;
+    get_mqtt().publish(get_topic_prefix() + F("/power"),
+                       to_string_default(power));
+}
+
+void Climate::publish_mode(Mode new_mode) {
+    mode = new_mode;
+    get_mqtt().publish(get_topic_prefix() + F("/mode"), to_string(mode));
+}
+
+void Climate::publish_action(Action new_action) {
+    action = new_action;
+    get_mqtt().publish(get_topic_prefix() + F("/action"), to_string(action));
+}
+
+void Climate::publish_target_temperature(double new_target_temperature) {
+    target_temperature = new_target_temperature;
+    get_mqtt().publish(get_topic_prefix() + F("/target_temperature"),
+                       String(target_temperature, 2));
+}
+
+void Climate::publish_current_temperature(double new_current_temperature) {
+    current_temperature = new_current_temperature;
+    get_mqtt().publish(get_topic_prefix() + F("/current_temperature"),
+                       String(current_temperature, 2));
 }
 
 }  // namespace PicoHA

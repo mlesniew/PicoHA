@@ -1,10 +1,6 @@
 #include <PicoMQTT.h>
-#include <PicoUtils.h>
 
 #include "PicoHA.h"
-
-PicoUtils::PinOutput wifi_led(2, false);
-PicoUtils::WiFiControlSmartConfig wifi_control(wifi_led);
 
 PicoMQTT::Client mqtt;
 
@@ -43,9 +39,9 @@ struct {
 
 void setup() {
     Serial.begin(115200);
-    wifi_led.init();
+
     WiFi.hostname("picoha");
-    wifi_control.init();
+    WiFi.begin();
 
     mqtt.host = "192.168.1.100";
     mqtt.begin();
@@ -76,8 +72,8 @@ void setup() {
     climate.min_temp = 15;
     climate.max_temp = 30;
     climate.temp_step = 0.5;
-    climate.modes = {PicoHA::Climate::Mode::off, PicoHA::Climate::Mode::heat,
-                     PicoHA::Climate::Mode::cool};
+    climate.modes = PicoHA::Climate::Mode::off | PicoHA::Climate::Mode::heat |
+                    PicoHA::Climate::Mode::cool;
     climate.bind_mode(&climate_state.mode);
     climate.bind_action(&climate_state.action);
     climate.bind_current_temperature(&climate_state.current_temperature);
@@ -99,7 +95,6 @@ void setup() {
 }
 
 void loop() {
-    wifi_control.tick();
     mqtt.loop();
     device.tick();
 

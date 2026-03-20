@@ -1,7 +1,5 @@
 #pragma once
 
-#include <PicoUtils.h>
-
 #include <cmath>
 
 #include "entity.h"
@@ -11,7 +9,14 @@ namespace PicoHA {
 class Climate : public Entity {
 public:
     enum class Action { off, heating, cooling, drying, idle, fan };
-    enum class Mode { automatic, off, cool, heat, dry, fan_only };
+    enum class Mode : unsigned char {
+        off = 1 << 0,
+        automatic = 1 << 1,
+        cool = 1 << 2,
+        heat = 1 << 3,
+        dry = 1 << 4,
+        fan_only = 1 << 5
+    };
     enum class TemperatureUnit : char { celsius = 'C', fahrenheit = 'F' };
 
     Climate(AbstractDevice & device, const String & identifier,
@@ -26,7 +31,7 @@ public:
     double min_temp, max_temp, temp_step;
     TemperatureUnit temperature_unit;
 
-    std::set<Mode> modes;
+    Mode modes;
 
     void bind_action(const Action * action) {
         action_getter = [action] { return *action; };
@@ -73,11 +78,27 @@ public:
 protected:
     virtual String get_platform() const override { return F("climate"); }
 
-    PicoUtils::Watch<bool> power_watcher;
-    PicoUtils::Watch<Mode> mode_watcher;
-    PicoUtils::Watch<Action> action_watcher;
-    PicoUtils::Watch<double> target_temperature_watcher;
-    PicoUtils::Watch<double> current_temperature_watcher;
+private:
+    void publish_power(bool new_power);
+    void publish_mode(Mode new_mode);
+    void publish_action(Action new_action);
+    void publish_target_temperature(double new_target_temperature);
+    void publish_current_temperature(double new_current_temperature);
+
+    bool power;
+    Mode mode;
+    Action action;
+    double target_temperature;
+    double current_temperature;
 };
+
+inline Climate::Mode operator|(Climate::Mode a, Climate::Mode b) {
+    return static_cast<Climate::Mode>(static_cast<unsigned char>(a) |
+                                      static_cast<unsigned char>(b));
+}
+
+inline bool operator&(Climate::Mode a, Climate::Mode b) {
+    return static_cast<unsigned char>(a) & static_cast<unsigned char>(b);
+}
 
 }  // namespace PicoHA
