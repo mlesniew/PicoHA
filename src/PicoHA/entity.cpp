@@ -65,6 +65,10 @@ void Entity::autodiscovery() {
     publish.send();
 }
 
+EntityWithCommand::~EntityWithCommand() {
+    get_mqtt().unsubscribe(get_command_topic());
+}
+
 void EntityWithCommand::begin() {
     get_mqtt().subscribe(get_command_topic(), [this](const String & payload) {
         on_command(payload);

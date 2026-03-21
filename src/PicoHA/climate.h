@@ -21,6 +21,7 @@ public:
 
     Climate(AbstractDevice & device, const PicoString & identifier,
             const PicoString & name);
+    virtual ~Climate();
 
     virtual JsonDocument get_autodiscovery_json() const override;
 

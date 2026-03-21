@@ -59,6 +59,7 @@ private:
 class EntityWithCommand : virtual public Entity {
 public:
     using Entity::Entity;
+    virtual ~EntityWithCommand();
     virtual void begin() override;
 
 protected:
