@@ -1,5 +1,7 @@
 #pragma once
+#include <algorithm>
 #include <functional>
+#include <vector>
 
 #include "entity.h"
 
@@ -24,11 +26,10 @@ protected:
 template <typename T>
 class InputEntity : public EntityWithCommand, public EntityWithState<T> {
 public:
-    InputEntity(AbstractDevice & device, const PicoString & identifier,
-                const PicoString & name)
-        : Entity(device, identifier, name),
-          EntityWithCommand(device, identifier, name),
-          EntityWithState<T>(device, identifier, name) {}
+    InputEntity(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
+          EntityWithCommand(identifier, name),
+          EntityWithState<T>(identifier, name) {}
 
 protected:
     virtual void begin(AbstractDevice & device) override {
@@ -48,10 +49,9 @@ public:
 template <typename T>
 class Number : public InputEntity<T> {
 public:
-    Number(AbstractDevice & device, const PicoString & identifier,
-           const PicoString & name)
-        : Entity(device, identifier, name),
-          InputEntity<T>(device, identifier, name),
+    Number(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
+          InputEntity<T>(identifier, name),
           min(1),
           max(100),
           step(1) {}
@@ -81,10 +81,9 @@ protected:
 
 class Text : public InputEntity<String> {
 public:
-    Text(AbstractDevice & device, const PicoString & identifier,
-         const PicoString & name)
-        : Entity(device, identifier, name),
-          InputEntity(device, identifier, name),
+    Text(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
+          InputEntity(identifier, name),
           min(0),
           max(0),
           is_password(false) {}
@@ -120,10 +119,8 @@ protected:
 
 class Switch : public InputEntity<bool> {
 public:
-    Switch(AbstractDevice & device, const PicoString & identifier,
-           const PicoString & name)
-        : Entity(device, identifier, name),
-          InputEntity(device, identifier, name) {}
+    Switch(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name), InputEntity(identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("switch"); }
@@ -143,10 +140,8 @@ protected:
 
 class Select : public InputEntity<String> {
 public:
-    Select(AbstractDevice & device, const PicoString & identifier,
-           const PicoString & name)
-        : Entity(device, identifier, name),
-          InputEntity(device, identifier, name) {}
+    Select(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name), InputEntity(identifier, name) {}
 
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const override {
@@ -160,16 +155,39 @@ public:
         return json;
     }
 
-    std::set<String> options;
+    std::vector<PicoString> options;
 
 protected:
     virtual String get_platform() const override { return F("select"); }
 
     virtual void on_command(const String & command) override {
-        if (setter && options.find(command) != options.end()) {
+        if (setter && std::find(options.begin(), options.end(), command) !=
+                          options.end()) {
             setter(command);
         }
     };
 };
 
-};  // namespace PicoHA
+inline Button & AbstractDevice::addButton(const PicoString & id,
+                                          const PicoString & name) {
+    return addEntity<Button>(id, name);
+}
+inline Switch & AbstractDevice::addSwitch(const PicoString & id,
+                                          const PicoString & name) {
+    return addEntity<Switch>(id, name);
+}
+inline Text & AbstractDevice::addText(const PicoString & id,
+                                      const PicoString & name) {
+    return addEntity<Text>(id, name);
+}
+inline Select & AbstractDevice::addSelect(const PicoString & id,
+                                          const PicoString & name) {
+    return addEntity<Select>(id, name);
+}
+template <typename T>
+inline Number<T> & AbstractDevice::addNumber(const PicoString & id,
+                                             const PicoString & name) {
+    return addEntity<Number<T>>(id, name);
+}
+
+}  // namespace PicoHA

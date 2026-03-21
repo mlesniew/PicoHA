@@ -13,8 +13,7 @@ class AbstractDevice;
 
 class Entity {
 public:
-    Entity(AbstractDevice & device, const PicoString & identifier,
-           const PicoString & name);
+    Entity(const PicoString & identifier, const PicoString & name);
     virtual ~Entity() {}
 
     Entity(const Entity &) = delete;
@@ -83,9 +82,8 @@ protected:
 template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class EntityWithState : virtual public Entity {
 public:
-    EntityWithState(AbstractDevice & device, const PicoString & identifier,
-                    const PicoString & name)
-        : Entity(device, identifier, name),
+    EntityWithState(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
           update_interval(250),
           last_update(0) {}
 

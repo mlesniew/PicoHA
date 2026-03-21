@@ -9,10 +9,9 @@ namespace PicoHA {
 template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class Sensor : public EntityWithState<T, to_string> {
 public:
-    Sensor(AbstractDevice & device, const PicoString & identifier,
-           const PicoString & name)
-        : Entity(device, identifier, name),
-          EntityWithState<T, to_string>(device, identifier, name) {}
+    Sensor(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
+          EntityWithState<T, to_string>(identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("sensor"); }
@@ -21,10 +20,9 @@ protected:
 template <typename T>
 class NumericSensor : public Sensor<T> {
 public:
-    NumericSensor(AbstractDevice & device, const PicoString & identifier,
-                  const PicoString & name = "")
-        : Entity(device, identifier, name),
-          Sensor<T>(device, identifier, name),
+    NumericSensor(const PicoString & identifier, const PicoString & name = "")
+        : Entity(identifier, name),
+          Sensor<T>(identifier, name),
           suggested_display_precision(-1) {}
 
     JsonDocument get_autodiscovery_json(
@@ -51,10 +49,35 @@ public:
 template <typename T, String (*to_string)(const T)>
 class EnumSensor : public Sensor<T, to_string> {
 public:
-    EnumSensor(AbstractDevice & device, const PicoString & identifier,
-               const PicoString & name = "")
-        : Entity(device, identifier, name),
-          Sensor<T, to_string>(device, identifier, name) {}
+    EnumSensor(const PicoString & identifier, const PicoString & name = "")
+        : Entity(identifier, name), Sensor<T, to_string>(identifier, name) {}
 };
+
+class BinarySensor : public Sensor<bool, to_string_default<bool>> {
+public:
+    BinarySensor(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name),
+          Sensor<bool, to_string_default<bool>>(identifier, name) {}
+
+protected:
+    virtual String get_platform() const override { return F("binary_sensor"); }
+};
+
+inline BinarySensor & AbstractDevice::addBinarySensor(const PicoString & id,
+                                                      const PicoString & name) {
+    return addEntity<BinarySensor>(id, name);
+}
+
+template <typename T>
+inline Sensor<T, to_string_default<T>> & AbstractDevice::addSensor(
+    const PicoString & id, const PicoString & name) {
+    return addEntity<Sensor<T, to_string_default<T>>>(id, name);
+}
+
+template <typename T>
+inline NumericSensor<T> & AbstractDevice::addNumericSensor(
+    const PicoString & id, const PicoString & name) {
+    return addEntity<NumericSensor<T>>(id, name);
+}
 
 }  // namespace PicoHA

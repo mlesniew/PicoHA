@@ -6,9 +6,8 @@ namespace PicoHA {
 
 class Event : public Entity {
 public:
-    Event(AbstractDevice & device, const PicoString & identifier,
-          const PicoString & name)
-        : Entity(device, identifier, name), pending(false) {}
+    Event(const PicoString & identifier, const PicoString & name)
+        : Entity(identifier, name), pending(false) {}
 
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const override;
@@ -28,4 +27,8 @@ protected:
     bool pending;
 };
 
-};  // namespace PicoHA
+inline Event & AbstractDevice::addEvent(const PicoString & id,
+                                        const PicoString & name) {
+    return addEntity<Event>(id, name);
+}
+}  // namespace PicoHA

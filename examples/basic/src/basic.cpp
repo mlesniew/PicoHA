@@ -11,23 +11,22 @@ String text = "PicoHA";
 String color = "Red";
 int power = 10;
 
-PicoHA::BinarySensor binary_sensor{device, "binarino", "Binarino"};
-PicoHA::NumericSensor<size_t> text_lenght_sensor{device, "text_length",
-                                                 "Text Length"};
+PicoHA::BinarySensor * binary_sensor;
+PicoHA::NumericSensor<size_t> * text_lenght_sensor;
 
-PicoHA::Event pingpong_event{device, "pingpong", "Ping Pong"};
-PicoHA::Event reboot_event{device, "reboot", "Reboot"};
+PicoHA::Event * pingpong_event;
+PicoHA::Event * reboot_event;
 
-PicoHA::Switch onoff_switch{device, "onoff", "Toggle"};
-PicoHA::Text text_input{device, "text", "Text"};
-PicoHA::Button reset_button{device, "reset", "Reset"};
-PicoHA::Select input_select{device, "color", "Color"};
-PicoHA::Number<int> power_input{device, "power", "Power"};
+PicoHA::Switch * onoff_switch;
+PicoHA::Text * text_input;
+PicoHA::Button * reset_button;
+PicoHA::Select * input_select;
+PicoHA::Number<int> * power_input;
 
 PicoHA::ChildDevice climate_device{device,     "climate",        "Climate",
                                    "mlesniew", "picoha-climate", ""};
 
-PicoHA::Climate climate{climate_device, "climate", ""};
+PicoHA::Climate * climate;
 
 struct {
     double current_temperature;
@@ -48,42 +47,55 @@ void setup() {
 
     PicoHA::add_diagnostic_entities(device);
 
-    binary_sensor.bind(&binarino);
-    binary_sensor.device_class = "power";
+    binary_sensor =
+        &device.addEntity<PicoHA::BinarySensor>("binarino", "Binarino");
+    binary_sensor->bind(&binarino);
+    binary_sensor->device_class = "power";
 
-    text_lenght_sensor.getter = [] { return text.length(); };
-    text_lenght_sensor.icon = "dog";
+    text_lenght_sensor = &device.addEntity<PicoHA::NumericSensor<size_t>>(
+        "text_length", "Text Length");
+    text_lenght_sensor->getter = [] { return text.length(); };
+    text_lenght_sensor->icon = "dog";
 
-    onoff_switch.bind(&binarino);
-    text_input.bind(&text);
+    pingpong_event = &device.addEntity<PicoHA::Event>("pingpong", "Ping Pong");
+    reboot_event = &device.addEntity<PicoHA::Event>("reboot", "Reboot");
+    reboot_event->trigger();
 
-    reboot_event.trigger();
+    onoff_switch = &device.addEntity<PicoHA::Switch>("onoff", "Toggle");
+    onoff_switch->bind(&binarino);
 
-    reset_button.on_press = [] {
+    text_input = &device.addEntity<PicoHA::Text>("text", "Text");
+    text_input->bind(&text);
+
+    reset_button = &device.addEntity<PicoHA::Button>("reset", "Reset");
+    reset_button->on_press = [] {
         text = "PicoHA";
         color = "Red";
         binarino = false;
         power = 10;
     };
 
-    input_select.options = {"Red", "Yellow", "Green"};
-    input_select.bind(&color);
+    input_select = &device.addEntity<PicoHA::Select>("color", "Color");
+    input_select->options = {"Red", "Yellow", "Green"};
+    input_select->bind(&color);
 
-    power_input.bind(&power);
+    power_input = &device.addEntity<PicoHA::Number<int>>("power", "Power");
+    power_input->bind(&power);
 
-    climate.min_temp = 15;
-    climate.max_temp = 30;
-    climate.temp_step = 0.5;
-    climate.modes = PicoHA::Climate::Mode::off | PicoHA::Climate::Mode::heat |
-                    PicoHA::Climate::Mode::cool;
-    climate.bind_mode(&climate_state.mode);
-    climate.bind_action(&climate_state.action);
-    climate.bind_current_temperature(&climate_state.current_temperature);
-    climate.bind_target_temperature(&climate_state.target_temperature);
-    climate.power_getter = [] {
+    climate = &climate_device.addEntity<PicoHA::Climate>("climate", "");
+    climate->min_temp = 15;
+    climate->max_temp = 30;
+    climate->temp_step = 0.5;
+    climate->modes = PicoHA::Climate::Mode::off | PicoHA::Climate::Mode::heat |
+                     PicoHA::Climate::Mode::cool;
+    climate->bind_mode(&climate_state.mode);
+    climate->bind_action(&climate_state.action);
+    climate->bind_current_temperature(&climate_state.current_temperature);
+    climate->bind_target_temperature(&climate_state.target_temperature);
+    climate->power_getter = [] {
         return climate_state.mode != PicoHA::Climate::Mode::off;
     };
-    climate.power_setter = [](bool new_value) {
+    climate->power_setter = [](bool new_value) {
         if (!new_value) {
             climate_state.mode = PicoHA::Climate::Mode::off;
         } else if (climate_state.mode == PicoHA::Climate::Mode::off) {
@@ -106,7 +118,7 @@ void loop() {
         if (millis() - last_event > 5000) {
             Serial.println("Tick!");
 
-            pingpong_event.trigger();
+            pingpong_event->trigger();
             last_event = millis();
 
             binarino = !binarino;

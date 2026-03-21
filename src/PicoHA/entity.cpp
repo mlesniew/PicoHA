@@ -2,14 +2,11 @@
 
 namespace PicoHA {
 
-Entity::Entity(AbstractDevice & device, const PicoString & identifier,
-               const PicoString & name)
+Entity::Entity(const PicoString & identifier, const PicoString & name)
     : identifier(smart_slugify(identifier)),
       name(name),
       is_diagnostic(false),
-      enabled_by_default(true) {
-    device.entities.insert(this);
-}
+      enabled_by_default(true) {}
 
 JsonDocument Entity::get_autodiscovery_json(
     const AbstractDevice & device) const {

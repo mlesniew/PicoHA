@@ -40,9 +40,8 @@ static String to_string(const Climate::Action action) {
     }
 }
 
-Climate::Climate(AbstractDevice & device, const PicoString & identifier,
-                 const PicoString & name)
-    : Entity(device, identifier, name),
+Climate::Climate(const PicoString & identifier, const PicoString & name)
+    : Entity(identifier, name),
       min_temp(std::numeric_limits<double>::quiet_NaN()),
       max_temp(std::numeric_limits<double>::quiet_NaN()),
       temp_step(std::numeric_limits<double>::quiet_NaN()),

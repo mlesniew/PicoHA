@@ -15,6 +15,12 @@ AbstractDevice::AbstractDevice(const PicoString & name,
       model(model),
       suggested_area(suggested_area) {}
 
+AbstractDevice::~AbstractDevice() {
+    for (auto * e : entities) {
+        delete e;
+    }
+}
+
 JsonDocument AbstractDevice::get_autodiscovery_json() const {
     JsonDocument json;
     json[F("name")] = name;

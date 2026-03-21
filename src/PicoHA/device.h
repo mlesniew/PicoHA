@@ -5,13 +5,29 @@
 #include <PicoMQTT.h>
 #include <PicoSlugify.h>
 
+#include <algorithm>
 #include <list>
+#include <utility>
+#include <vector>
 
 #include "utils.h"
 
 namespace PicoHA {
 
 class Entity;
+class BinarySensor;
+class Event;
+class Button;
+class Switch;
+class Text;
+class Select;
+class Climate;
+template <typename T, String (*to_string)(const T)>
+class Sensor;
+template <typename T>
+class NumericSensor;
+template <typename T>
+class Number;
 
 class ChildDevice;
 
@@ -20,7 +36,7 @@ public:
     AbstractDevice(const PicoString & name, const PicoString & manufacturer,
                    const PicoString & model, const PicoString & suggested_area);
 
-    virtual ~AbstractDevice() {}
+    virtual ~AbstractDevice();
 
     AbstractDevice(const AbstractDevice &) = delete;
     AbstractDevice & operator=(const AbstractDevice &) = delete;
@@ -42,7 +58,37 @@ public:
     PicoString model;
     PicoString suggested_area;
 
-    friend class Entity;
+    template <typename T>
+    T & addEntity(const PicoString & entity_id,
+                  const PicoString & entity_name = "") {
+        T * e = new T(entity_id, entity_name);
+        entities.push_back(e);
+        return *e;
+    }
+
+    BinarySensor & addBinarySensor(const PicoString & id,
+                                   const PicoString & name = "");
+    Event & addEvent(const PicoString & id, const PicoString & name = "");
+    Button & addButton(const PicoString & id, const PicoString & name = "");
+    Switch & addSwitch(const PicoString & id, const PicoString & name = "");
+    Text & addText(const PicoString & id, const PicoString & name = "");
+    Select & addSelect(const PicoString & id, const PicoString & name = "");
+    Climate & addClimate(const PicoString & id, const PicoString & name = "");
+
+    template <typename T>
+    Sensor<T, to_string_default<T>> & addSensor(const PicoString & id,
+                                                 const PicoString & name = "");
+    template <typename T>
+    NumericSensor<T> & addNumericSensor(const PicoString & id,
+                                        const PicoString & name = "");
+    template <typename T>
+    Number<T> & addNumber(const PicoString & id,
+                          const PicoString & name = "");
+
+    String get_default_entity_id_prefix() const {
+        return PicoSlugify::slugify(name);
+    }
+
     friend class ChildDevice;
 
     virtual PicoMQTT::Client & get_mqtt() = 0;
@@ -54,12 +100,8 @@ protected:
     virtual void end();
     void autodiscovery();
 
-    String get_default_entity_id_prefix() const {
-        return PicoSlugify::slugify(name);
-    }
-
-    std::set<ChildDevice *> devices;
-    std::set<Entity *> entities;
+    std::vector<ChildDevice *> devices;
+    std::vector<Entity *> entities;
 };
 
 class Device : public AbstractDevice {
@@ -121,12 +163,15 @@ public:
         : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
           identifier(smart_slugify(identifier, '-')) {
-        parent.devices.insert(this);
+        parent.devices.push_back(this);
     }
 
     virtual ~ChildDevice() {
         end();
-        parent.devices.erase(this);
+        auto it = std::find(parent.devices.begin(), parent.devices.end(), this);
+        if (it != parent.devices.end()) {
+            parent.devices.erase(it);
+        }
     }
 
     virtual String get_unique_id() const {

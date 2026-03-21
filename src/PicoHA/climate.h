@@ -19,8 +19,7 @@ public:
     };
     enum class TemperatureUnit : char { celsius = 'C', fahrenheit = 'F' };
 
-    Climate(AbstractDevice & device, const PicoString & identifier,
-            const PicoString & name);
+    Climate(const PicoString & identifier, const PicoString & name);
 
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const override;
@@ -103,6 +102,11 @@ inline Climate::Mode operator|(Climate::Mode a, Climate::Mode b) {
 
 inline bool operator&(Climate::Mode a, Climate::Mode b) {
     return static_cast<unsigned char>(a) & static_cast<unsigned char>(b);
+}
+
+inline Climate & AbstractDevice::addClimate(const PicoString & id,
+                                            const PicoString & name) {
+    return addEntity<Climate>(id, name);
 }
 
 }  // namespace PicoHA
