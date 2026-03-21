@@ -25,9 +25,9 @@ public:
 
     virtual JsonDocument get_autodiscovery_json() const override;
 
-    void begin() override;
-    void tick() override;
-    void fire() override;
+    void begin(AbstractDevice & device) override;
+    void tick(AbstractDevice & device) override;
+    void fire(AbstractDevice & device) override;
 
     double min_temp, max_temp, temp_step;
     TemperatureUnit temperature_unit;
@@ -80,11 +80,11 @@ protected:
     virtual String get_platform() const override { return F("climate"); }
 
 private:
-    void publish_power(bool new_power);
-    void publish_mode(Mode new_mode);
-    void publish_action(Action new_action);
-    void publish_target_temperature(double new_target_temperature);
-    void publish_current_temperature(double new_current_temperature);
+    void publish_power(AbstractDevice & device, bool new_power);
+    void publish_mode(AbstractDevice & device, Mode new_mode);
+    void publish_action(AbstractDevice & device, Action new_action);
+    void publish_target_temperature(AbstractDevice & device, double new_target_temperature);
+    void publish_current_temperature(AbstractDevice & device, double new_current_temperature);
 
     bool power;
     Mode mode;

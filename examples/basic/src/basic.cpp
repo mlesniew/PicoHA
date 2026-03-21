@@ -16,7 +16,7 @@ PicoHA::NumericSensor<size_t> text_lenght_sensor{device, "text_length",
                                                  "Text Length"};
 
 PicoHA::Event pingpong_event{device, "pingpong", "Ping Pong"};
-PicoHA::QueuedEvent reboot_event{device, "reboot", "Reboot"};
+PicoHA::Event reboot_event{device, "reboot", "Reboot"};
 
 PicoHA::Switch onoff_switch{device, "onoff", "Toggle"};
 PicoHA::Text text_input{device, "text", "Text"};

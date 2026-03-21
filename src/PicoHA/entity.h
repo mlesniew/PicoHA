@@ -15,7 +15,7 @@ class Entity {
 public:
     Entity(AbstractDevice & device, const PicoString & identifier,
            const PicoString & name);
-    virtual ~Entity();
+    virtual ~Entity() {}
 
     Entity(const Entity &) = delete;
     Entity & operator=(const Entity &) = delete;
@@ -23,17 +23,17 @@ public:
     Entity(Entity &&) = delete;
     Entity & operator=(Entity &&) = delete;
 
-    virtual void begin() {}
-    virtual void tick() {}
-    virtual void fire() {}
+    virtual void begin(AbstractDevice & device) {}
+    virtual void tick(AbstractDevice & device) {}
+    virtual void fire(AbstractDevice & device) {}
 
-    virtual JsonDocument get_autodiscovery_json() const;
+    virtual JsonDocument get_autodiscovery_json(
+        const AbstractDevice & device) const;
 
-    String get_unique_id() const;
+    String get_unique_id(const AbstractDevice & device) const;
 
-    void autodiscovery();
+    void autodiscovery(AbstractDevice & device);
 
-    AbstractDevice & device;
     const PicoString identifier;
     PicoString name;
     PicoString icon;
@@ -42,29 +42,36 @@ public:
     bool enabled_by_default;
 
 protected:
-    PicoMQTT::Client & get_mqtt() const { return device.get_mqtt(); }
+    PicoMQTT::Client & get_mqtt(AbstractDevice & device) const {
+        return device.get_mqtt();
+    }
     virtual String get_platform() const = 0;
 
-    String get_topic_prefix() const {
+    String get_topic_prefix(const AbstractDevice & device) const {
         return device.get_topic_prefix() + F("/") + identifier;
     }
 
-    virtual String get_state_topic() const { return F(""); }
-    virtual String get_command_topic() const { return F(""); }
+    virtual String get_state_topic(const AbstractDevice & device) const {
+        return F("");
+    }
+    virtual String get_command_topic(const AbstractDevice & device) const {
+        return F("");
+    }
 
 private:
-    String get_autodiscovery_topic() const;
+    String get_autodiscovery_topic(const AbstractDevice & device) const;
 };
 
 class EntityWithCommand : virtual public Entity {
 public:
     using Entity::Entity;
     virtual ~EntityWithCommand();
-    virtual void begin() override;
+    virtual void begin(AbstractDevice & device) override;
 
 protected:
-    virtual String get_command_topic() const override {
-        return get_topic_prefix() + F("/set");
+    virtual String get_command_topic(
+        const AbstractDevice & device) const override {
+        return get_topic_prefix(device) + F("/set");
     }
     virtual void on_command(const String & command) = 0;
 };
@@ -78,13 +85,13 @@ public:
           update_interval(250),
           last_update(0) {}
 
-    void begin() override {
+    void begin(AbstractDevice & device) override {
         if (getter) {
             value = getter();
         }
     }
 
-    void tick() override {
+    void tick(AbstractDevice & device) override {
         if (!getter) {
             return;
         }
@@ -95,13 +102,13 @@ public:
 
         const T new_value = getter();
         if (new_value != value) {
-            fire(new_value);
+            fire(device, new_value);
         }
     }
 
-    void fire() override {
+    void fire(AbstractDevice & device) override {
         if (getter) {
-            fire(getter());
+            fire(device, getter());
         }
     }
 
@@ -119,20 +126,20 @@ protected:
     T value;
     unsigned long last_update;
 
-    String get_state_topic() const {
-        return getter ? get_topic_prefix() : F("");
+    String get_state_topic(const AbstractDevice & device) const {
+        return getter ? get_topic_prefix(device) : F("");
     }
 
-    void fire(const T & new_value) {
+    void fire(AbstractDevice & device, const T & new_value) {
         value = new_value;
-        publish();
+        publish(device);
         last_update = millis();
     }
 
-    void publish() const {
-        const String topic = get_state_topic();
+    void publish(AbstractDevice & device) const {
+        const String topic = get_state_topic(device);
         if (!topic.isEmpty()) {
-            get_mqtt().publish(topic, to_string(value));
+            device.get_mqtt().publish(topic, to_string(value));
         }
     }
 };

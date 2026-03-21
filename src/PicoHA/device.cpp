@@ -58,7 +58,7 @@ void AbstractDevice::begin() {
     }
 
     for (Entity * e : entities) {
-        e->begin();
+        e->begin(*this);
     }
 }
 
@@ -68,7 +68,7 @@ void AbstractDevice::tick() {
     }
 
     for (Entity * e : entities) {
-        e->tick();
+        e->tick(*this);
     }
 }
 
@@ -78,7 +78,7 @@ void AbstractDevice::fire() {
     }
 
     for (Entity * e : entities) {
-        e->fire();
+        e->fire(*this);
     }
 }
 
@@ -88,7 +88,7 @@ void AbstractDevice::autodiscovery() {
     }
 
     for (Entity * e : entities) {
-        e->autodiscovery();
+        e->autodiscovery(*this);
     }
 }
 

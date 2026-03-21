@@ -30,9 +30,9 @@ public:
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
 
-    virtual void begin() override {
-        EntityWithCommand::begin();
-        EntityWithState<T>::begin();
+    virtual void begin(AbstractDevice & device) override {
+        EntityWithCommand::begin(device);
+        EntityWithState<T>::begin(device);
     }
 
     virtual void bind(T * value) override {
@@ -54,8 +54,9 @@ public:
           max(100),
           step(1) {}
 
-    virtual JsonDocument get_autodiscovery_json() const override {
-        JsonDocument json = Entity::get_autodiscovery_json();
+    virtual JsonDocument get_autodiscovery_json(
+        const AbstractDevice & device) const override {
+        JsonDocument json = Entity::get_autodiscovery_json(device);
         json[F("min")] = min;
         json[F("max")] = max;
         json[F("step")] = step;
@@ -86,8 +87,9 @@ public:
           max(0),
           is_password(false) {}
 
-    virtual JsonDocument get_autodiscovery_json() const override {
-        JsonDocument json = Entity::get_autodiscovery_json();
+    virtual JsonDocument get_autodiscovery_json(
+        const AbstractDevice & device) const override {
+        JsonDocument json = Entity::get_autodiscovery_json(device);
         if (min) json[F("min")] = min;
         if (max) json[F("max")] = max;
         if (!pattern.isEmpty()) {
@@ -144,8 +146,9 @@ public:
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
-    virtual JsonDocument get_autodiscovery_json() const override {
-        JsonDocument json = Entity::get_autodiscovery_json();
+    virtual JsonDocument get_autodiscovery_json(
+        const AbstractDevice & device) const override {
+        JsonDocument json = Entity::get_autodiscovery_json(device);
         {
             unsigned int idx = 0;
             for (const String & event_type : options) {

@@ -4,19 +4,17 @@ namespace PicoHA {
 
 Entity::Entity(AbstractDevice & device, const PicoString & identifier,
                const PicoString & name)
-    : device(device),
-      identifier(smart_slugify(identifier)),
+    : identifier(smart_slugify(identifier)),
       name(name),
       is_diagnostic(false),
       enabled_by_default(true) {
     device.entities.insert(this);
 }
 
-Entity::~Entity() { device.entities.erase(this); }
-
-JsonDocument Entity::get_autodiscovery_json() const {
+JsonDocument Entity::get_autodiscovery_json(
+    const AbstractDevice & device) const {
     JsonDocument json;
-    json[F("unique_id")] = get_unique_id();
+    json[F("unique_id")] = get_unique_id(device);
     json[F("platform")] = get_platform();
     json[F("name")] = !name.isEmpty() ? String(name).c_str() : nullptr;
     if (!icon.isEmpty()) {
@@ -37,42 +35,40 @@ JsonDocument Entity::get_autodiscovery_json() const {
         get_platform() + F(".") + device.get_default_entity_id_prefix() +
         (name.isEmpty() ? F("") : F("_") + identifier);
 
-    if (!get_state_topic().isEmpty()) {
-        json[F("state_topic")] = get_state_topic();
+    if (!get_state_topic(device).isEmpty()) {
+        json[F("state_topic")] = get_state_topic(device);
     }
 
-    if (!get_command_topic().isEmpty()) {
-        json[F("command_topic")] = get_command_topic();
+    if (!get_command_topic(device).isEmpty()) {
+        json[F("command_topic")] = get_command_topic(device);
     }
 
     return json;
 }
 
-String Entity::get_autodiscovery_topic() const {
+String Entity::get_autodiscovery_topic(const AbstractDevice & device) const {
     return String(F("homeassistant/")) + get_platform() + F("/") +
-           get_unique_id() + F("/config");
+           get_unique_id(device) + F("/config");
 }
 
-String Entity::get_unique_id() const {
+String Entity::get_unique_id(const AbstractDevice & device) const {
     return device.get_unique_id() + F("-") + identifier;
 }
 
-void Entity::autodiscovery() {
-    JsonDocument json = get_autodiscovery_json();
-    auto publish = get_mqtt().begin_publish(get_autodiscovery_topic(),
-                                            measureJson(json), 0, true);
+void Entity::autodiscovery(AbstractDevice & device) {
+    JsonDocument json = get_autodiscovery_json(device);
+    auto publish = device.get_mqtt().begin_publish(
+        get_autodiscovery_topic(device), measureJson(json), 0, true);
     serializeJson(json, publish);
     publish.send();
 }
 
-EntityWithCommand::~EntityWithCommand() {
-    get_mqtt().unsubscribe(get_command_topic());
-}
+EntityWithCommand::~EntityWithCommand() {}
 
-void EntityWithCommand::begin() {
-    get_mqtt().subscribe(get_command_topic(), [this](const String & payload) {
-        on_command(payload);
-    });
+void EntityWithCommand::begin(AbstractDevice & device) {
+    device.get_mqtt().subscribe(
+        get_command_topic(device),
+        [this](const String & payload) { on_command(payload); });
 }
 
 };  // namespace PicoHA
