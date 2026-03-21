@@ -16,9 +16,15 @@ AbstractDevice::AbstractDevice(const PicoString & name,
       suggested_area(suggested_area) {}
 
 AbstractDevice::~AbstractDevice() {
-    for (auto * e : entities) {
-        delete e;
+    Entity * entity = entities;
+    while (entity) {
+        Entity * next = entity->next;
+        delete entity;
+        entity = next;
     }
+
+    entities = nullptr;
+    devices = nullptr;
 }
 
 JsonDocument AbstractDevice::get_autodiscovery_json() const {
@@ -59,51 +65,51 @@ JsonDocument Device::get_autodiscovery_json() const {
 }
 
 void AbstractDevice::begin() {
-    for (AbstractDevice * d : devices) {
+    for (ChildDevice * d = devices; d; d = d->next) {
         d->begin();
     }
 
-    for (Entity * e : entities) {
+    for (Entity * e = entities; e; e = e->next) {
         e->begin(*this);
     }
 }
 
 void AbstractDevice::tick() {
-    for (AbstractDevice * d : devices) {
+    for (ChildDevice * d = devices; d; d = d->next) {
         d->tick();
     }
 
-    for (Entity * e : entities) {
+    for (Entity * e = entities; e; e = e->next) {
         e->tick(*this);
     }
 }
 
 void AbstractDevice::fire() {
-    for (AbstractDevice * d : devices) {
+    for (ChildDevice * d = devices; d; d = d->next) {
         d->fire();
     }
 
-    for (Entity * e : entities) {
+    for (Entity * e = entities; e; e = e->next) {
         e->fire(*this);
     }
 }
 
 void AbstractDevice::end() {
-    for (Entity * e : entities) {
+    for (Entity * e = entities; e; e = e->next) {
         e->end(*this);
     }
 
-    for (AbstractDevice * d : devices) {
+    for (ChildDevice * d = devices; d; d = d->next) {
         d->end();
     }
 }
 
 void AbstractDevice::autodiscovery() {
-    for (AbstractDevice * d : devices) {
+    for (ChildDevice * d = devices; d; d = d->next) {
         d->autodiscovery();
     }
 
-    for (Entity * e : entities) {
+    for (Entity * e = entities; e; e = e->next) {
         e->autodiscovery(*this);
     }
 }

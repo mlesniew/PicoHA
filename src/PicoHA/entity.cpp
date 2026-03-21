@@ -6,7 +6,8 @@ Entity::Entity(const PicoString & identifier, const PicoString & name)
     : identifier(smart_slugify(identifier)),
       name(name),
       is_diagnostic(false),
-      enabled_by_default(true) {}
+    enabled_by_default(true),
+    next(nullptr) {}
 
 JsonDocument Entity::get_autodiscovery_json(
     const AbstractDevice & device) const {

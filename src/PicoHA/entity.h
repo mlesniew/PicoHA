@@ -62,6 +62,8 @@ protected:
 
 private:
     String get_autodiscovery_topic(const AbstractDevice & device) const;
+
+    Entity * next;
 };
 
 class EntityWithCommand : virtual public Entity {
@@ -83,9 +85,7 @@ template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class EntityWithState : virtual public Entity {
 public:
     EntityWithState(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          update_interval(250),
-          last_update(0) {}
+        : Entity(identifier, name), update_interval(250), last_update(0) {}
 
 protected:
     void begin(AbstractDevice & device) override {

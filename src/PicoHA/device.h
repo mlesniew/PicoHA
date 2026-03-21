@@ -5,10 +5,7 @@
 #include <PicoMQTT.h>
 #include <PicoSlugify.h>
 
-#include <algorithm>
-#include <list>
 #include <utility>
-#include <vector>
 
 #include "utils.h"
 
@@ -62,7 +59,8 @@ public:
     T & addEntity(const PicoString & entity_id,
                   const PicoString & entity_name = "") {
         T * e = new T(entity_id, entity_name);
-        entities.push_back(e);
+        e->next = entities;
+        entities = e;
         return *e;
     }
 
@@ -77,13 +75,12 @@ public:
 
     template <typename T>
     Sensor<T, to_string_default<T>> & addSensor(const PicoString & id,
-                                                 const PicoString & name = "");
+                                                const PicoString & name = "");
     template <typename T>
     NumericSensor<T> & addNumericSensor(const PicoString & id,
                                         const PicoString & name = "");
     template <typename T>
-    Number<T> & addNumber(const PicoString & id,
-                          const PicoString & name = "");
+    Number<T> & addNumber(const PicoString & id, const PicoString & name = "");
 
     String get_default_entity_id_prefix() const {
         return PicoSlugify::slugify(name);
@@ -100,8 +97,8 @@ protected:
     virtual void end();
     void autodiscovery();
 
-    std::vector<ChildDevice *> devices;
-    std::vector<Entity *> entities;
+    ChildDevice * devices = nullptr;
+    Entity * entities = nullptr;
 };
 
 class Device : public AbstractDevice {
@@ -163,14 +160,26 @@ public:
         : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
           identifier(smart_slugify(identifier, '-')) {
-        parent.devices.push_back(this);
+        if (!parent.devices) {
+            parent.devices = this;
+        } else {
+            ChildDevice * tail = parent.devices;
+            while (tail->next) {
+                tail = tail->next;
+            }
+            tail->next = this;
+        }
     }
 
     virtual ~ChildDevice() {
         end();
-        auto it = std::find(parent.devices.begin(), parent.devices.end(), this);
-        if (it != parent.devices.end()) {
-            parent.devices.erase(it);
+        ChildDevice ** current = &parent.devices;
+        while (*current && *current != this) {
+            current = &((*current)->next);
+        }
+
+        if (*current == this) {
+            *current = next;
         }
     }
 
@@ -194,6 +203,11 @@ public:
 
     AbstractDevice & parent;
     const PicoString identifier;
+
+    friend class AbstractDevice;
+
+private:
+    ChildDevice * next = nullptr;
 };
 
 }  // namespace PicoHA
