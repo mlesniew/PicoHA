@@ -9,8 +9,8 @@ namespace PicoHA {
 template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class Sensor : public EntityWithState<T, to_string> {
 public:
-    Sensor(AbstractDevice & device, const SmartString & identifier,
-           const SmartString & name)
+    Sensor(AbstractDevice & device, const PicoString & identifier,
+           const PicoString & name)
         : Entity(device, identifier, name),
           EntityWithState<T, to_string>(device, identifier, name) {}
 
@@ -21,8 +21,8 @@ protected:
 template <typename T>
 class NumericSensor : public Sensor<T> {
 public:
-    NumericSensor(AbstractDevice & device, const SmartString & identifier,
-                  const SmartString & name = "")
+    NumericSensor(AbstractDevice & device, const PicoString & identifier,
+                  const PicoString & name = "")
         : Entity(device, identifier, name),
           Sensor<T>(device, identifier, name),
           suggested_display_precision(-1) {}
@@ -42,16 +42,16 @@ public:
         return json;
     }
 
-    SmartString unit_of_measurement;
+    PicoString unit_of_measurement;
     int suggested_display_precision;
-    SmartString state_class;
+    PicoString state_class;
 };
 
 template <typename T, String (*to_string)(const T)>
 class EnumSensor : public Sensor<T, to_string> {
 public:
-    EnumSensor(AbstractDevice & device, const SmartString & identifier,
-               const SmartString & name = "")
+    EnumSensor(AbstractDevice & device, const PicoString & identifier,
+               const PicoString & name = "")
         : Entity(device, identifier, name),
           Sensor<T, to_string>(device, identifier, name) {}
 };

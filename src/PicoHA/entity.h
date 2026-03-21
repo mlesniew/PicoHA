@@ -13,8 +13,8 @@ class AbstractDevice;
 
 class Entity {
 public:
-    Entity(AbstractDevice & device, const SmartString & identifier,
-           const SmartString & name);
+    Entity(AbstractDevice & device, const PicoString & identifier,
+           const PicoString & name);
     virtual ~Entity();
 
     Entity(const Entity &) = delete;
@@ -34,10 +34,10 @@ public:
     void autodiscovery();
 
     AbstractDevice & device;
-    const SmartString identifier;
-    SmartString name;
-    SmartString icon;
-    SmartString device_class;
+    const PicoString identifier;
+    PicoString name;
+    PicoString icon;
+    PicoString device_class;
     bool is_diagnostic;
     bool enabled_by_default;
 
@@ -71,8 +71,8 @@ protected:
 template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class EntityWithState : virtual public Entity {
 public:
-    EntityWithState(AbstractDevice & device, const SmartString & identifier,
-                    const SmartString & name)
+    EntityWithState(AbstractDevice & device, const PicoString & identifier,
+                    const PicoString & name)
         : Entity(device, identifier, name),
           update_interval(250),
           last_update(0) {}

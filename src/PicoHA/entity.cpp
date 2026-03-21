@@ -1,13 +1,11 @@
 #include "entity.h"
 
-#include <PicoSlugify.h>
-
 namespace PicoHA {
 
-Entity::Entity(AbstractDevice & device, const SmartString & identifier,
-               const SmartString & name)
+Entity::Entity(AbstractDevice & device, const PicoString & identifier,
+               const PicoString & name)
     : device(device),
-      identifier(PicoSlugify::slugify(identifier)),
+      identifier(smart_slugify(identifier)),
       name(name),
       is_diagnostic(false),
       enabled_by_default(true) {

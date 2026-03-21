@@ -24,8 +24,8 @@ protected:
 template <typename T>
 class InputEntity : public EntityWithCommand, public EntityWithState<T> {
 public:
-    InputEntity(AbstractDevice & device, const SmartString & identifier,
-                const SmartString & name)
+    InputEntity(AbstractDevice & device, const PicoString & identifier,
+                const PicoString & name)
         : Entity(device, identifier, name),
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
@@ -41,8 +41,8 @@ public:
 template <typename T>
 class Number : public InputEntity<T> {
 public:
-    Number(AbstractDevice & device, const SmartString & identifier,
-           const SmartString & name)
+    Number(AbstractDevice & device, const PicoString & identifier,
+           const PicoString & name)
         : Entity(device, identifier, name),
           InputEntity<T>(device, identifier, name),
           min(1),
@@ -73,8 +73,8 @@ protected:
 
 class Text : public InputEntity<String> {
 public:
-    Text(AbstractDevice & device, const SmartString & identifier,
-         const SmartString & name)
+    Text(AbstractDevice & device, const PicoString & identifier,
+         const PicoString & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name),
           min(0),
@@ -111,8 +111,8 @@ protected:
 
 class Switch : public InputEntity<bool> {
 public:
-    Switch(AbstractDevice & device, const SmartString & identifier,
-           const SmartString & name)
+    Switch(AbstractDevice & device, const PicoString & identifier,
+           const PicoString & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 
@@ -134,8 +134,8 @@ protected:
 
 class Select : public InputEntity<String> {
 public:
-    Select(AbstractDevice & device, const SmartString & identifier,
-           const SmartString & name)
+    Select(AbstractDevice & device, const PicoString & identifier,
+           const PicoString & name)
         : Entity(device, identifier, name),
           InputEntity(device, identifier, name) {}
 

@@ -22,6 +22,7 @@
   "dependencies": {
     "bblanchon/ArduinoJson": "^7.0.0",
     "mlesniew/PicoMQTT": "^1.0.0",
-    "PicoSlugify": "https://github.com/mlesniew/PicoSlugify.git"
+    "mlesniew/PicoString": "^0.2.0",
+    "mlesniew/PicoSlugify": "^0.1.0"
   }
 }

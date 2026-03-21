@@ -19,8 +19,8 @@ public:
     };
     enum class TemperatureUnit : char { celsius = 'C', fahrenheit = 'F' };
 
-    Climate(AbstractDevice & device, const String & identifier,
-            const String & name);
+    Climate(AbstractDevice & device, const PicoString & identifier,
+            const PicoString & name);
 
     virtual JsonDocument get_autodiscovery_json() const override;
 

@@ -6,8 +6,8 @@ namespace PicoHA {
 
 class Event : public Entity {
 public:
-    Event(AbstractDevice & device, const SmartString & identifier,
-          const SmartString & name)
+    Event(AbstractDevice & device, const PicoString & identifier,
+          const PicoString & name)
         : Entity(device, identifier, name) {}
 
     virtual JsonDocument get_autodiscovery_json() const override;
@@ -22,8 +22,8 @@ protected:
 
 class QueuedEvent : public Event {
 public:
-    QueuedEvent(AbstractDevice & device, const SmartString & identifier,
-                const SmartString & name)
+    QueuedEvent(AbstractDevice & device, const PicoString & identifier,
+                const PicoString & name)
         : Event(device, identifier, name), pending(false) {}
 
     virtual void tick() override;

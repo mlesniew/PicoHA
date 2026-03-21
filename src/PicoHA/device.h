@@ -15,9 +15,8 @@ class Entity;
 
 class AbstractDevice {
 public:
-    AbstractDevice(const SmartString & name, const SmartString & manufacturer,
-                   const SmartString & model,
-                   const SmartString & suggested_area);
+    AbstractDevice(const PicoString & name, const PicoString & manufacturer,
+                   const PicoString & model, const PicoString & suggested_area);
 
     virtual ~AbstractDevice() {}
 
@@ -40,11 +39,11 @@ public:
     virtual void fire();
     void autodiscovery();
 
-    const SmartString identifier;
-    SmartString name;
-    SmartString manufacturer;
-    SmartString model;
-    SmartString suggested_area;
+    const PicoString identifier;
+    PicoString name;
+    PicoString manufacturer;
+    PicoString model;
+    PicoString suggested_area;
 
     friend class Entity;
     friend class ChildDevice;
@@ -110,12 +109,12 @@ protected:
 
 class ChildDevice : public AbstractDevice {
 public:
-    ChildDevice(AbstractDevice & parent, const SmartString & identifier,
-                const SmartString & name, const SmartString & manufacturer,
-                const SmartString & model, const SmartString & suggested_area)
+    ChildDevice(AbstractDevice & parent, const PicoString & identifier,
+                const PicoString & name, const PicoString & manufacturer,
+                const PicoString & model, const PicoString & suggested_area)
         : AbstractDevice(name, manufacturer, model, suggested_area),
           parent(parent),
-          identifier(PicoSlugify::slugify(identifier, '-')) {
+          identifier(smart_slugify(identifier, '-')) {
         parent.devices.insert(this);
     }
 
@@ -140,7 +139,7 @@ public:
     virtual PicoMQTT::Client & get_mqtt() override { return parent.get_mqtt(); }
 
     AbstractDevice & parent;
-    const SmartString identifier;
+    const PicoString identifier;
 };
 
 }  // namespace PicoHA

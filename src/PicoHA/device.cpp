@@ -6,10 +6,10 @@
 #include "entity.h"
 
 namespace PicoHA {
-AbstractDevice::AbstractDevice(const SmartString & name,
-                               const SmartString & manufacturer,
-                               const SmartString & model,
-                               const SmartString & suggested_area)
+AbstractDevice::AbstractDevice(const PicoString & name,
+                               const PicoString & manufacturer,
+                               const PicoString & model,
+                               const PicoString & suggested_area)
     : name(name),
       manufacturer(manufacturer),
       model(model),
