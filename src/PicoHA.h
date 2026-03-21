@@ -1,6 +1,5 @@
 #pragma once
 
-#include "PicoHA/binary_sensor.h"
 #include "PicoHA/climate.h"
 #include "PicoHA/device.h"
 #include "PicoHA/diagnostics.h"

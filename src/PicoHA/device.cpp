@@ -22,8 +22,14 @@ AbstractDevice::~AbstractDevice() {
         delete entity;
         entity = next;
     }
-
     entities = nullptr;
+
+    ChildDevice * dev = devices;
+    while (dev) {
+        ChildDevice * next = dev->next;
+        delete dev;
+        dev = next;
+    }
     devices = nullptr;
 }
 

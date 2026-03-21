@@ -23,9 +23,6 @@ PicoHA::Button * reset_button;
 PicoHA::Select * input_select;
 PicoHA::Number<int> * power_input;
 
-PicoHA::ChildDevice climate_device{device,     "climate",        "Climate",
-                                   "mlesniew", "picoha-climate", ""};
-
 PicoHA::Climate * climate;
 
 struct {
@@ -82,6 +79,7 @@ void setup() {
     power_input = &device.addEntity<PicoHA::Number<int>>("power", "Power");
     power_input->bind(&power);
 
+    auto & climate_device = device.addChildDevice("climate", "Climate", "mlesniew", "picoha-climate", "");
     climate = &climate_device.addEntity<PicoHA::Climate>("climate", "");
     climate->min_temp = 15;
     climate->max_temp = 30;

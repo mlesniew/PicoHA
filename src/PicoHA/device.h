@@ -82,11 +82,15 @@ public:
     template <typename T>
     Number<T> & addNumber(const PicoString & id, const PicoString & name = "");
 
+    ChildDevice & addChildDevice(const PicoString & id,
+                                  const PicoString & name = "",
+                                  const PicoString & manufacturer = "",
+                                  const PicoString & model = "",
+                                  const PicoString & suggested_area = "");
+
     String get_default_entity_id_prefix() const {
         return PicoSlugify::slugify(name);
     }
-
-    friend class ChildDevice;
 
     virtual PicoMQTT::Client & get_mqtt() = 0;
 
@@ -154,34 +158,7 @@ protected:
 
 class ChildDevice : public AbstractDevice {
 public:
-    ChildDevice(AbstractDevice & parent, const PicoString & identifier,
-                const PicoString & name, const PicoString & manufacturer,
-                const PicoString & model, const PicoString & suggested_area)
-        : AbstractDevice(name, manufacturer, model, suggested_area),
-          parent(parent),
-          identifier(smart_slugify(identifier, '-')) {
-        if (!parent.devices) {
-            parent.devices = this;
-        } else {
-            ChildDevice * tail = parent.devices;
-            while (tail->next) {
-                tail = tail->next;
-            }
-            tail->next = this;
-        }
-    }
-
-    virtual ~ChildDevice() {
-        end();
-        ChildDevice ** current = &parent.devices;
-        while (*current && *current != this) {
-            current = &((*current)->next);
-        }
-
-        if (*current == this) {
-            *current = next;
-        }
-    }
+    virtual ~ChildDevice() = default;
 
     virtual String get_unique_id() const {
         return parent.get_unique_id() + F("-") + identifier;
@@ -204,10 +181,28 @@ public:
     AbstractDevice & parent;
     const PicoString identifier;
 
-    friend class AbstractDevice;
-
 private:
+    ChildDevice(AbstractDevice & parent, const PicoString & identifier,
+                const PicoString & name, const PicoString & manufacturer,
+                const PicoString & model, const PicoString & suggested_area)
+        : AbstractDevice(name, manufacturer, model, suggested_area),
+          parent(parent),
+          identifier(smart_slugify(identifier, '-')) {}
+
     ChildDevice * next = nullptr;
+
+    friend class AbstractDevice;
 };
+
+inline ChildDevice & AbstractDevice::addChildDevice(
+    const PicoString & id, const PicoString & name,
+    const PicoString & manufacturer, const PicoString & model,
+    const PicoString & suggested_area) {
+    ChildDevice * d =
+        new ChildDevice(*this, id, name, manufacturer, model, suggested_area);
+    d->next = devices;
+    devices = d;
+    return *d;
+}
 
 }  // namespace PicoHA
