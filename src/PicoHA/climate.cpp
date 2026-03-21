@@ -181,7 +181,7 @@ void Climate::tick() {
              std::isnan(target_temperature)) ||
             ((!std::isnan(new_target_temperature) &&
               std::abs(new_target_temperature - target_temperature) >= 0.01))) {
-            publish_target_temperature(target_temperature);
+            publish_target_temperature(new_target_temperature);
         }
     }
 
@@ -192,7 +192,7 @@ void Climate::tick() {
             ((!std::isnan(new_current_temperature) &&
               std::abs(new_current_temperature - current_temperature) >=
                   0.01))) {
-            publish_current_temperature(current_temperature);
+            publish_current_temperature(new_current_temperature);
         }
     }
 }
