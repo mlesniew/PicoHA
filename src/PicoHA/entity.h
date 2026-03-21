@@ -4,12 +4,12 @@
 #include <ArduinoJson.h>
 #include <PicoMQTT.h>
 
+#include <functional>
+
 #include "device.h"
 #include "utils.h"
 
 namespace PicoHA {
-
-class AbstractDevice;
 
 class Entity {
 public:

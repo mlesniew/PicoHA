@@ -5,8 +5,6 @@
 #include <PicoMQTT.h>
 #include <PicoSlugify.h>
 
-#include <utility>
-
 #include "utils.h"
 
 namespace PicoHA {
@@ -49,7 +47,6 @@ public:
     virtual String get_availability_topic() const = 0;
     virtual const AbstractDevice * get_parent_device() const = 0;
 
-    const PicoString identifier;
     PicoString name;
     PicoString manufacturer;
     PicoString model;
@@ -83,10 +80,10 @@ public:
     Number<T> & addNumber(const PicoString & id, const PicoString & name = "");
 
     ChildDevice & addChildDevice(const PicoString & id,
-                                  const PicoString & name = "",
-                                  const PicoString & manufacturer = "",
-                                  const PicoString & model = "",
-                                  const PicoString & suggested_area = "");
+                                 const PicoString & name = "",
+                                 const PicoString & manufacturer = "",
+                                 const PicoString & model = "",
+                                 const PicoString & suggested_area = "");
 
     String get_default_entity_id_prefix() const {
         return PicoSlugify::slugify(name);

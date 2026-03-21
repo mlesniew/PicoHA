@@ -55,17 +55,15 @@ Climate::Climate(const PicoString & identifier, const PicoString & name)
       current_temperature(std::numeric_limits<double>::quiet_NaN()) {}
 
 void Climate::end(AbstractDevice & device) {
+    const String prefix = get_topic_prefix(device);
     if (power_setter) {
-        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
-                                      F("/power/set"));
+        device.get_mqtt().unsubscribe(prefix + F("/power/set"));
     }
     if (mode_setter) {
-        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
-                                      F("/mode/set"));
+        device.get_mqtt().unsubscribe(prefix + F("/mode/set"));
     }
     if (target_temperature_setter) {
-        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
-                                      F("/target_temperature/set"));
+        device.get_mqtt().unsubscribe(prefix + F("/target_temperature/set"));
     }
 }
 
@@ -93,43 +91,42 @@ JsonDocument Climate::get_autodiscovery_json(
     json[F("temperature_unit")] =
         temperature_unit == TemperatureUnit::fahrenheit ? F("F") : F("C");
 
+    const String prefix = get_topic_prefix(device);
     if (action_getter) {
-        json[F("action_topic")] = get_topic_prefix(device) + F("/action");
+        json[F("action_topic")] = prefix + F("/action");
     }
     if (power_getter) {
-        json[F("power_topic")] = get_topic_prefix(device) + F("/power");
+        json[F("power_topic")] = prefix + F("/power");
     }
     if (mode_getter) {
-        json[F("mode_state_topic")] = get_topic_prefix(device) + F("/mode");
+        json[F("mode_state_topic")] = prefix + F("/mode");
     }
     if (current_temperature_getter) {
         json[F("current_temperature_topic")] =
-            get_topic_prefix(device) + F("/current_temperature");
+            prefix + F("/current_temperature");
     }
     if (target_temperature_getter) {
-        json[F("target_temperature_topic")] =
-            get_topic_prefix(device) + F("/target_temperature");
+        json[F("target_temperature_topic")] = prefix + F("/target_temperature");
     }
 
     if (power_setter) {
-        json[F("power_command_topic")] =
-            get_topic_prefix(device) + F("/power/set");
+        json[F("power_command_topic")] = prefix + F("/power/set");
     }
     if (mode_setter) {
-        json[F("mode_command_topic")] =
-            get_topic_prefix(device) + F("/mode/set");
+        json[F("mode_command_topic")] = prefix + F("/mode/set");
     }
     if (target_temperature_setter) {
         json[F("temperature_command_topic")] =
-            get_topic_prefix(device) + F("/target_temperature/set");
+            prefix + F("/target_temperature/set");
     }
 
     return json;
 }
 
 void Climate::begin(AbstractDevice & device) {
+    const String prefix = get_topic_prefix(device);
     if (power_setter) {
-        device.get_mqtt().subscribe(get_topic_prefix(device) + F("/power/set"),
+        device.get_mqtt().subscribe(prefix + F("/power/set"),
                                     [this](const String & payload) {
                                         if (!power_setter) return;
 
@@ -143,8 +140,7 @@ void Climate::begin(AbstractDevice & device) {
 
     if (mode_setter) {
         device.get_mqtt().subscribe(
-            get_topic_prefix(device) + F("/mode/set"),
-            [this](const String & payload) {
+            prefix + F("/mode/set"), [this](const String & payload) {
                 if (!mode_setter) return;
 
                 for (unsigned char mode_bit = 1; mode_bit != 0;
@@ -163,7 +159,7 @@ void Climate::begin(AbstractDevice & device) {
 
     if (target_temperature_setter) {
         device.get_mqtt().subscribe(
-            get_topic_prefix(device) + F("/target_temperature/set"),
+            prefix + F("/target_temperature/set"),
             [this](const String & payload) {
                 if (!target_temperature_setter) return;
                 target_temperature_setter(payload.toDouble());

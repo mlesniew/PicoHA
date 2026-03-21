@@ -1,6 +1,5 @@
 #include "event.h"
 
-#include <ArduinoJson.h>
 namespace PicoHA {
 
 JsonDocument Event::get_autodiscovery_json(

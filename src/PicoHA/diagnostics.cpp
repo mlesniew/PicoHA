@@ -153,8 +153,9 @@ void add_diagnostic_entities(Device & device) {
 
 #ifdef ESP32
     auto & reset_reason_sensor =
-        device.addEntity<EnumSensor<esp_reset_reason_t, reset_reason_to_string>>(
-            F("reset_reason"), F("Reset Reason"));
+        device
+            .addEntity<EnumSensor<esp_reset_reason_t, reset_reason_to_string>>(
+                F("reset_reason"), F("Reset Reason"));
     reset_reason_sensor.icon = F("timeline-question");
     reset_reason_sensor.getter = [] { return esp_reset_reason(); };
     reset_reason_sensor.is_diagnostic = true;

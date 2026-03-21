@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 #include "entity.h"
 
 namespace PicoHA {
@@ -29,9 +27,11 @@ public:
         const AbstractDevice & device) const override {
         JsonDocument json = Sensor<T>::get_autodiscovery_json(device);
 
-        json[F("unit_of_measurement")] =
-            !unit_of_measurement.isEmpty() ? String(unit_of_measurement).c_str()
-                                           : nullptr;
+        if (unit_of_measurement.isEmpty()) {
+            json[F("unit_of_measurement")] = nullptr;
+        } else {
+            json[F("unit_of_measurement")] = unit_of_measurement;
+        }
         if (suggested_display_precision >= 0) {
             json[F("suggested_display_precision")] =
                 suggested_display_precision;

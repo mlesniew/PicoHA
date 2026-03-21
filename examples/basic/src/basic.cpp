@@ -79,7 +79,8 @@ void setup() {
     power_input = &device.addEntity<PicoHA::Number<int>>("power", "Power");
     power_input->bind(&power);
 
-    auto & climate_device = device.addChildDevice("climate", "Climate", "mlesniew", "picoha-climate", "");
+    auto & climate_device = device.addChildDevice(
+        "climate", "Climate", "mlesniew", "picoha-climate", "");
     climate = &climate_device.addEntity<PicoHA::Climate>("climate", "");
     climate->min_temp = 15;
     climate->max_temp = 30;

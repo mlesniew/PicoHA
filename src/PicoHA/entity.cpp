@@ -14,7 +14,11 @@ JsonDocument Entity::get_autodiscovery_json(
     JsonDocument json;
     json[F("unique_id")] = get_unique_id(device);
     json[F("platform")] = get_platform();
-    json[F("name")] = !name.isEmpty() ? String(name).c_str() : nullptr;
+    if (name.isEmpty()) {
+        json[F("name")] = nullptr;
+    } else {
+        json[F("name")] = name;
+    }
     if (!icon.isEmpty()) {
         json[F("icon")] = F("mdi:") + icon;
     }
@@ -33,12 +37,14 @@ JsonDocument Entity::get_autodiscovery_json(
         get_platform() + F(".") + device.get_default_entity_id_prefix() +
         (name.isEmpty() ? F("") : F("_") + identifier);
 
-    if (!get_state_topic(device).isEmpty()) {
-        json[F("state_topic")] = get_state_topic(device);
+    const String state_topic = get_state_topic(device);
+    if (!state_topic.isEmpty()) {
+        json[F("state_topic")] = state_topic;
     }
 
-    if (!get_command_topic(device).isEmpty()) {
-        json[F("command_topic")] = get_command_topic(device);
+    const String command_topic = get_command_topic(device);
+    if (!command_topic.isEmpty()) {
+        json[F("command_topic")] = command_topic;
     }
 
     return json;
