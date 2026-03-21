@@ -13,12 +13,12 @@ public:
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const override;
 
-    virtual void tick(AbstractDevice & device) override { fire(device); }
-    virtual void fire(AbstractDevice & device) override;
-
     virtual void trigger() { pending = true; }
 
 protected:
+    virtual void tick(AbstractDevice & device) override { fire(device); }
+    virtual void fire(AbstractDevice & device) override;
+
     virtual String get_platform() const override { return F("event"); }
     virtual String get_state_topic(
         const AbstractDevice & device) const override {

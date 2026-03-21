@@ -82,6 +82,16 @@ void AbstractDevice::fire() {
     }
 }
 
+void AbstractDevice::end() {
+    for (Entity * e : entities) {
+        e->end(*this);
+    }
+
+    for (AbstractDevice * d : devices) {
+        d->end();
+    }
+}
+
 void AbstractDevice::autodiscovery() {
     for (AbstractDevice * d : devices) {
         d->autodiscovery();
@@ -91,6 +101,8 @@ void AbstractDevice::autodiscovery() {
         e->autodiscovery(*this);
     }
 }
+
+Device::~Device() { end(); }
 
 void Device::begin() {
     if (mqtt.client_id.isEmpty()) {
@@ -133,5 +145,9 @@ void Device::tick() {
 
     AbstractDevice::tick();
 }
+
+void Device::fire() { AbstractDevice::fire(); }
+
+void Device::end() { AbstractDevice::end(); }
 
 }  // namespace PicoHA

@@ -23,10 +23,6 @@ public:
     Entity(Entity &&) = delete;
     Entity & operator=(Entity &&) = delete;
 
-    virtual void begin(AbstractDevice & device) {}
-    virtual void tick(AbstractDevice & device) {}
-    virtual void fire(AbstractDevice & device) {}
-
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const;
 
@@ -41,7 +37,14 @@ public:
     bool is_diagnostic;
     bool enabled_by_default;
 
+    friend class AbstractDevice;
+
 protected:
+    virtual void begin(AbstractDevice & device) {}
+    virtual void tick(AbstractDevice & device) {}
+    virtual void fire(AbstractDevice & device) {}
+    virtual void end(AbstractDevice & device) {}
+
     PicoMQTT::Client & get_mqtt(AbstractDevice & device) const {
         return device.get_mqtt();
     }
@@ -66,9 +69,10 @@ class EntityWithCommand : virtual public Entity {
 public:
     using Entity::Entity;
     virtual ~EntityWithCommand();
-    virtual void begin(AbstractDevice & device) override;
 
 protected:
+    virtual void begin(AbstractDevice & device) override;
+    virtual void end(AbstractDevice & device) override;
     virtual String get_command_topic(
         const AbstractDevice & device) const override {
         return get_topic_prefix(device) + F("/set");
@@ -85,6 +89,7 @@ public:
           update_interval(250),
           last_update(0) {}
 
+protected:
     void begin(AbstractDevice & device) override {
         if (getter) {
             value = getter();
@@ -112,6 +117,7 @@ public:
         }
     }
 
+public:
     virtual void bind(const T * value) {
         getter = [value] { return *value; };
     }

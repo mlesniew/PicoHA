@@ -30,11 +30,13 @@ public:
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
 
+protected:
     virtual void begin(AbstractDevice & device) override {
         EntityWithCommand::begin(device);
         EntityWithState<T>::begin(device);
     }
 
+public:
     virtual void bind(T * value) override {
         EntityWithState<T>::bind(value);
         setter = [value](const T & new_value) { *value = new_value; };

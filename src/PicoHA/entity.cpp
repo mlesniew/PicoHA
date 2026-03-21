@@ -71,4 +71,8 @@ void EntityWithCommand::begin(AbstractDevice & device) {
         [this](const String & payload) { on_command(payload); });
 }
 
+void EntityWithCommand::end(AbstractDevice & device) {
+    device.get_mqtt().unsubscribe(get_command_topic(device));
+}
+
 };  // namespace PicoHA

@@ -21,13 +21,9 @@ public:
 
     Climate(AbstractDevice & device, const PicoString & identifier,
             const PicoString & name);
-    virtual ~Climate();
 
-    virtual JsonDocument get_autodiscovery_json() const override;
-
-    void begin(AbstractDevice & device) override;
-    void tick(AbstractDevice & device) override;
-    void fire(AbstractDevice & device) override;
+    virtual JsonDocument get_autodiscovery_json(
+        const AbstractDevice & device) const override;
 
     double min_temp, max_temp, temp_step;
     TemperatureUnit temperature_unit;
@@ -77,14 +73,21 @@ public:
     std::function<void(double)> target_temperature_setter;
 
 protected:
+    void begin(AbstractDevice & device) override;
+    void tick(AbstractDevice & device) override;
+    void fire(AbstractDevice & device) override;
+    void end(AbstractDevice & device) override;
+
     virtual String get_platform() const override { return F("climate"); }
 
 private:
     void publish_power(AbstractDevice & device, bool new_power);
     void publish_mode(AbstractDevice & device, Mode new_mode);
     void publish_action(AbstractDevice & device, Action new_action);
-    void publish_target_temperature(AbstractDevice & device, double new_target_temperature);
-    void publish_current_temperature(AbstractDevice & device, double new_current_temperature);
+    void publish_target_temperature(AbstractDevice & device,
+                                    double new_target_temperature);
+    void publish_current_temperature(AbstractDevice & device,
+                                     double new_current_temperature);
 
     bool power;
     Mode mode;

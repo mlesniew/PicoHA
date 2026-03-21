@@ -13,6 +13,8 @@ namespace PicoHA {
 
 class Entity;
 
+class ChildDevice;
+
 class AbstractDevice {
 public:
     AbstractDevice(const PicoString & name, const PicoString & manufacturer,
@@ -34,11 +36,6 @@ public:
     virtual String get_availability_topic() const = 0;
     virtual const AbstractDevice * get_parent_device() const = 0;
 
-    virtual void begin();
-    virtual void tick();
-    virtual void fire();
-    void autodiscovery();
-
     const PicoString identifier;
     PicoString name;
     PicoString manufacturer;
@@ -51,11 +48,17 @@ public:
     virtual PicoMQTT::Client & get_mqtt() = 0;
 
 protected:
+    virtual void begin();
+    virtual void tick();
+    virtual void fire();
+    virtual void end();
+    void autodiscovery();
+
     String get_default_entity_id_prefix() const {
         return PicoSlugify::slugify(name);
     }
 
-    std::set<AbstractDevice *> devices;
+    std::set<ChildDevice *> devices;
     std::set<Entity *> entities;
 };
 
@@ -68,9 +71,14 @@ public:
           mqtt(mqtt),
           last_autodiscovery_time(0) {}
 
+    virtual ~Device();
+
     virtual JsonDocument get_autodiscovery_json() const override;
 
+    virtual void begin() override;
     virtual void tick() override;
+    virtual void fire() override;
+    virtual void end() override;
 
     String get_board_id() const {
 #ifdef ESP32
@@ -98,8 +106,6 @@ public:
         return get_topic_prefix() + F("/availability");
     }
 
-    virtual void begin() override;
-
     virtual PicoMQTT::Client & get_mqtt() override { return mqtt; }
 
 protected:
@@ -118,7 +124,10 @@ public:
         parent.devices.insert(this);
     }
 
-    virtual ~ChildDevice() { parent.devices.erase(this); }
+    virtual ~ChildDevice() {
+        end();
+        parent.devices.erase(this);
+    }
 
     virtual String get_unique_id() const {
         return parent.get_unique_id() + F("-") + identifier;

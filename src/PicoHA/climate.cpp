@@ -55,16 +55,18 @@ Climate::Climate(AbstractDevice & device, const PicoString & identifier,
       target_temperature(std::numeric_limits<double>::quiet_NaN()),
       current_temperature(std::numeric_limits<double>::quiet_NaN()) {}
 
-Climate::~Climate() {
+void Climate::end(AbstractDevice & device) {
     if (power_setter) {
-        get_mqtt().unsubscribe(get_topic_prefix() + F("/power/set"));
+        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
+                                      F("/power/set"));
     }
     if (mode_setter) {
-        get_mqtt().unsubscribe(get_topic_prefix() + F("/mode/set"));
+        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
+                                      F("/mode/set"));
     }
     if (target_temperature_setter) {
-        get_mqtt().unsubscribe(get_topic_prefix() +
-                               F("/target_temperature/set"));
+        device.get_mqtt().unsubscribe(get_topic_prefix(device) +
+                                      F("/target_temperature/set"));
     }
 }
 
