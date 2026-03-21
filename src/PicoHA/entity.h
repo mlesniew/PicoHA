@@ -77,6 +77,12 @@ public:
           update_interval(250),
           last_update(0) {}
 
+    void begin() override {
+        if (getter) {
+            value = getter();
+        }
+    }
+
     void tick() override {
         if (!getter) {
             return;

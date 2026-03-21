@@ -30,6 +30,11 @@ public:
           EntityWithCommand(device, identifier, name),
           EntityWithState<T>(device, identifier, name) {}
 
+    virtual void begin() override {
+        EntityWithCommand::begin();
+        EntityWithState<T>::begin();
+    }
+
     virtual void bind(T * value) override {
         EntityWithState<T>::bind(value);
         setter = [value](const T & new_value) { *value = new_value; };
