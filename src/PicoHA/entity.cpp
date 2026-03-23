@@ -50,6 +50,48 @@ JsonDocument Entity::get_autodiscovery_json(
     return json;
 }
 
+PicoJson Entity::print_autodiscovery_json(const AbstractDevice & device,
+                                          Print & out) const {
+    PicoJson json(out);
+
+    json[F("unique_id")] = get_unique_id(device);
+    json[F("platform")] = get_platform();
+    if (name.isEmpty()) {
+        json[F("name")] = nullptr;
+    } else {
+        json[F("name")] = name;
+    }
+    if (!icon.isEmpty()) {
+        json[F("icon")] = F("mdi:") + icon;
+    }
+    if (!device_class.isEmpty()) {
+        json[F("device_class")] = device_class;
+    }
+    if (is_diagnostic) {
+        json[F("entity_category")] = F("diagnostic");
+    }
+    if (!enabled_by_default) {
+        json[F("enabled_by_default")] = false;
+    }
+    device.print_autodiscovery_json(json[F("device")]);
+    json[F("availability_topic")] = device.get_availability_topic();
+    json[F("default_entity_id")] =
+        get_platform() + F(".") + device.get_default_entity_id_prefix() +
+        (name.isEmpty() ? F("") : F("_") + identifier);
+
+    const String state_topic = get_state_topic(device);
+    if (!state_topic.isEmpty()) {
+        json[F("state_topic")] = state_topic;
+    }
+
+    const String command_topic = get_command_topic(device);
+    if (!command_topic.isEmpty()) {
+        json[F("command_topic")] = command_topic;
+    }
+
+    return json;
+}
+
 String Entity::get_autodiscovery_topic(const AbstractDevice & device) const {
     return String(F("homeassistant/")) + get_platform() + F("/") +
            get_unique_id(device) + F("/config");

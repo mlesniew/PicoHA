@@ -7,6 +7,7 @@
 #include <functional>
 
 #include "device.h"
+#include "json.h"
 #include "utils.h"
 
 namespace PicoHA {
@@ -24,6 +25,9 @@ public:
 
     virtual JsonDocument get_autodiscovery_json(
         const AbstractDevice & device) const;
+
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const;
 
     String get_unique_id(const AbstractDevice & device) const;
 
