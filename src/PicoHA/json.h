@@ -28,7 +28,23 @@ public:
 
     PicoJson & operator=(const PicoJson & other) = delete;
 
-    unsigned int operator=(long value) {
+    bool operator=(bool value) {
+        if (state == State::start) {
+            out.print(value ? "true" : "false");
+        }
+        state = State::closed;
+        return value;
+    }
+
+    long operator=(long value) {
+        if (state == State::start) {
+            out.print(value);
+        }
+        state = State::closed;
+        return value;
+    }
+
+    double operator=(double value) {
         if (state == State::start) {
             out.print(value);
         }
@@ -77,6 +93,59 @@ public:
         return value;
     }
 
+    class Value {
+    public:
+        Value(std::nullptr_t = nullptr) : type(Type::null_t), i(0) {}
+        Value(bool v) : type(Type::boolean), b(v) {}
+        Value(int v) : type(Type::integer), i(v) {}
+        Value(long v) : type(Type::integer), i(v) {}
+        Value(float v) : type(Type::real), d(v) {}
+        Value(double v) : type(Type::real), d(v) {}
+        Value(const char * v) : type(v ? Type::cstr : Type::null_t), s(v) {}
+        Value(const __FlashStringHelper * v)
+            : type(v ? Type::fstr : Type::null_t), f(v) {}
+
+        void apply(PicoJson & j) const {
+            switch (type) {
+                case Type::null_t:
+                    j = nullptr;
+                    break;
+                case Type::boolean:
+                    j = b;
+                    break;
+                case Type::integer:
+                    j = i;
+                    break;
+                case Type::real:
+                    j = d;
+                    break;
+                case Type::cstr:
+                    j = s;
+                    break;
+                case Type::fstr:
+                    j = f;
+                    break;
+            }
+        }
+
+    private:
+        enum class Type { null_t, boolean, integer, real, cstr, fstr } type;
+        union {
+            bool b;
+            long i;
+            double d;
+            const char * s;
+            const __FlashStringHelper * f;
+        };
+    };
+
+    void operator=(std::initializer_list<Value> values) {
+        for (const Value & v : values) {
+            PicoJson item = append();
+            v.apply(item);
+        }
+    }
+
     PicoJson append() {
         char c = ',';
 
@@ -86,10 +155,7 @@ public:
         }
 
         if (state == State::list) {
-            if (child) {
-                child->close();
-                child->parent = nullptr;
-            }
+            closeChild();
 
             out.write(c);
             PicoJson ret(out, this);
@@ -111,11 +177,7 @@ public:
         }
 
         if (state == State::object) {
-            if (child) {
-                child->close();
-                child->parent = nullptr;
-            }
-
+            closeChild();
             out.write(c);
             writeString(key);
             out.write(':');
@@ -136,6 +198,7 @@ public:
         }
 
         if (state == State::object) {
+            closeChild();
             out.write(c);
             writeStringPGM(reinterpret_cast<const char *>(key));
             out.write(':');
@@ -150,21 +213,7 @@ public:
     PicoJson operator[](const char * key) { return add(key); }
     PicoJson operator[](const __FlashStringHelper * key) { return add(key); }
 
-    void setChild(PicoJson * ptr) {
-        if (child) {
-            child->close();
-            child->parent = nullptr;
-        }
-        child = ptr;
-    }
-
     virtual ~PicoJson() {
-        if (child) {
-            child->close();
-            child->parent = nullptr;
-            child = nullptr;
-        }
-
         close();
 
         if (!parent) return;
@@ -176,6 +225,7 @@ public:
     }
 
     void close() {
+        closeChild();
         switch (state) {
             case State::object:
                 out.write('}');
@@ -208,33 +258,61 @@ protected:
     PicoJson(Print & out, PicoJson * parent, State state = State::start)
         : out(out), parent(parent), child(nullptr), state(state) {}
 
+    void writeChar(char c) {
+        switch (c) {
+            case '"':
+                out.write("\\\"");
+                break;
+            case '\\':
+                out.write("\\\\");
+                break;
+            case '\b':
+                out.write("\\b");
+                break;
+            case '\f':
+                out.write("\\f");
+                break;
+            case '\n':
+                out.write("\\n");
+                break;
+            case '\r':
+                out.write("\\r");
+                break;
+            case '\t':
+                out.write("\\t");
+                break;
+            default:
+                if (c < 0x20) {
+                    out.printf("\\u%04x", c);
+                } else {
+                    out.write(c);
+                }
+        }
+    }
+
     void writeString(const char * value) {
         out.write('"');
-        while (value) {
-            char c = *value++;
-            if (!c) {
-                break;
-            }
-            if (c == '"') {
-                out.write('\\');
-            }
-            out.write(c);
+        char c;
+        while (value && (c = *value++)) {
+            writeChar(c);
         }
         out.write('"');
     }
 
     void writeStringPGM(const char * value) {
         out.write('"');
-        while (value) {
-            char c = pgm_read_byte(value++);
-            if (!c) {
-                break;
-            }
-            if (c == '"') {
-                out.write('\\');
-            }
-            out.write(c);
+        char c;
+        while (value && (c = pgm_read_byte(value++))) {
+            writeChar(c);
         }
         out.write('"');
+    }
+
+    void closeChild() {
+        if (child) {
+            child->close();
+            child->parent = nullptr;
+            child = nullptr;
+        }
     }
 };

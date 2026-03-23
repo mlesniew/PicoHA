@@ -30,4 +30,24 @@ inline PicoString smart_slugify(const PicoString & s,
     }
 }
 
+class ByteCounter : public Print {
+public:
+    ByteCounter() : count(0) {}
+
+    virtual size_t write(uint8_t) override {
+        ++count;
+        return 1;
+    }
+
+    size_t write(const uint8_t * buffer, size_t size) override {
+        count += size;
+        return size;
+    }
+
+    size_t getCount() const { return count; }
+
+private:
+    size_t count = 0;
+};
+
 }  // namespace PicoHA

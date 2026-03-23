@@ -9,47 +9,6 @@ Entity::Entity(const PicoString & identifier, const PicoString & name)
       enabled_by_default(true),
       next(nullptr) {}
 
-JsonDocument Entity::get_autodiscovery_json(
-    const AbstractDevice & device) const {
-    JsonDocument json;
-    json[F("unique_id")] = get_unique_id(device);
-    json[F("platform")] = get_platform();
-    if (name.isEmpty()) {
-        json[F("name")] = nullptr;
-    } else {
-        json[F("name")] = name;
-    }
-    if (!icon.isEmpty()) {
-        json[F("icon")] = F("mdi:") + icon;
-    }
-    if (!device_class.isEmpty()) {
-        json[F("device_class")] = device_class;
-    }
-    if (is_diagnostic) {
-        json[F("entity_category")] = F("diagnostic");
-    }
-    if (!enabled_by_default) {
-        json[F("enabled_by_default")] = false;
-    }
-    json[F("device")] = device.get_autodiscovery_json();
-    json[F("availability_topic")] = device.get_availability_topic();
-    json[F("default_entity_id")] =
-        get_platform() + F(".") + device.get_default_entity_id_prefix() +
-        (name.isEmpty() ? F("") : F("_") + identifier);
-
-    const String state_topic = get_state_topic(device);
-    if (!state_topic.isEmpty()) {
-        json[F("state_topic")] = state_topic;
-    }
-
-    const String command_topic = get_command_topic(device);
-    if (!command_topic.isEmpty()) {
-        json[F("command_topic")] = command_topic;
-    }
-
-    return json;
-}
-
 PicoJson Entity::print_autodiscovery_json(const AbstractDevice & device,
                                           Print & out) const {
     PicoJson json(out);
@@ -102,10 +61,12 @@ String Entity::get_unique_id(const AbstractDevice & device) const {
 }
 
 void Entity::autodiscovery(AbstractDevice & device) {
-    JsonDocument json = get_autodiscovery_json(device);
+    ByteCounter counter;
+    print_autodiscovery_json(device, counter);
+
     auto publish = device.get_mqtt().begin_publish(
-        get_autodiscovery_topic(device), measureJson(json), 0, true);
-    serializeJson(json, publish);
+        get_autodiscovery_topic(device), counter.getCount(), 0, true);
+    print_autodiscovery_json(device, publish);
     publish.send();
 }
 

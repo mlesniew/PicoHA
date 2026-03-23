@@ -40,7 +40,6 @@ public:
     AbstractDevice(AbstractDevice &&) = delete;
     AbstractDevice & operator=(AbstractDevice &&) = delete;
 
-    virtual JsonDocument get_autodiscovery_json() const;
     virtual PicoJson print_autodiscovery_json(PicoJson && e) const;
 
     virtual String get_unique_id() const = 0;
@@ -115,7 +114,6 @@ public:
 
     virtual ~Device();
 
-    virtual JsonDocument get_autodiscovery_json() const override;
     virtual PicoJson print_autodiscovery_json(PicoJson && e) const override;
 
     virtual void begin() override;

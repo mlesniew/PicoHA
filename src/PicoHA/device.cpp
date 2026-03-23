@@ -33,30 +33,6 @@ AbstractDevice::~AbstractDevice() {
     devices = nullptr;
 }
 
-JsonDocument AbstractDevice::get_autodiscovery_json() const {
-    JsonDocument json;
-    json[F("name")] = name;
-    json[F("identifiers")][0] = get_unique_id();
-
-    if (!manufacturer.isEmpty()) {
-        json[F("manufacturer")] = manufacturer;
-    }
-
-    if (!model.isEmpty()) {
-        json[F("model")] = model;
-    }
-
-    if (!suggested_area.isEmpty()) {
-        json[F("suggested_area")] = suggested_area;
-    }
-
-    if (const AbstractDevice * parent = get_parent_device()) {
-        json[F("via_device")] = parent->get_unique_id();
-    }
-
-    return json;
-}
-
 PicoJson AbstractDevice::print_autodiscovery_json(PicoJson && e) const {
     e[F("name")] = name;
     e[F("identifiers")][1] = get_unique_id();
@@ -80,33 +56,17 @@ PicoJson AbstractDevice::print_autodiscovery_json(PicoJson && e) const {
     return std::move(e);
 }
 
-JsonDocument Device::get_autodiscovery_json() const {
-    JsonDocument json = AbstractDevice::get_autodiscovery_json();
-
-    json[F("connections")][0][0] = F("mac");
-    json[F("connections")][0][1] = WiFi.macAddress();
-    json[F("connections")][1][0] = F("ip");
-    json[F("connections")][1][1] = WiFi.localIP().toString();
-
-    json[F("sw_version")] = __DATE__ " " __TIME__;
-
-    return json;
-}
-
 PicoJson Device::print_autodiscovery_json(PicoJson && e) const {
     PicoJson json = AbstractDevice::print_autodiscovery_json(std::move(e));
 
     auto connections = json[F("connections")];
 
-    auto connections_mac = connections[1];
-    connections_mac[1] = F("mac");
-    connections_mac[2] = WiFi.macAddress();
+    connections[1] = {F("mac"), WiFi.macAddress().c_str()};
+    connections[2] = {F("ip"), WiFi.localIP().toString().c_str()};
 
-    auto connections_wifi = connections[2];
-    connections_wifi[1] = F("ip");
-    connections_wifi[2] = WiFi.localIP().toString();
+    json[F("sw_version")] = F(__DATE__ " " __TIME__);
 
-    return std::move(json);
+    return json;
 }
 
 void AbstractDevice::begin() {
