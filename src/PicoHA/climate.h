@@ -21,8 +21,8 @@ public:
 
     Climate(const PicoString & identifier, const PicoString & name);
 
-    virtual JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override;
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const override;
 
     double min_temp, max_temp, temp_step;
     TemperatureUnit temperature_unit;

@@ -23,9 +23,9 @@ public:
           Sensor<T>(identifier, name),
           suggested_display_precision(-1) {}
 
-    JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override {
-        JsonDocument json = Sensor<T>::get_autodiscovery_json(device);
+    PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                      Print & out) const override {
+        PicoJson json = Sensor<T>::print_autodiscovery_json(device, out);
 
         if (unit_of_measurement.isEmpty()) {
             json[F("unit_of_measurement")] = nullptr;

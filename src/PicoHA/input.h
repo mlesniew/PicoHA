@@ -56,9 +56,9 @@ public:
           max(100),
           step(1) {}
 
-    virtual JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override {
-        JsonDocument json = Entity::get_autodiscovery_json(device);
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const override {
+        PicoJson json = Entity::print_autodiscovery_json(device, out);
         json[F("min")] = min;
         json[F("max")] = max;
         json[F("step")] = step;
@@ -88,9 +88,9 @@ public:
           max(0),
           is_password(false) {}
 
-    virtual JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override {
-        JsonDocument json = Entity::get_autodiscovery_json(device);
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const override {
+        PicoJson json = Entity::print_autodiscovery_json(device, out);
         if (min) json[F("min")] = min;
         if (max) json[F("max")] = max;
         if (!pattern.isEmpty()) {
@@ -143,13 +143,12 @@ public:
     Select(const PicoString & identifier, const PicoString & name)
         : Entity(identifier, name), InputEntity(identifier, name) {}
 
-    virtual JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override {
-        JsonDocument json = Entity::get_autodiscovery_json(device);
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const override {
+        PicoJson json = Entity::print_autodiscovery_json(device, out);
         {
-            unsigned int idx = 0;
             for (const String & event_type : options) {
-                json[F("options")][idx++] = event_type;
+                json[F("options")].append() = event_type;
             }
         }
         return json;

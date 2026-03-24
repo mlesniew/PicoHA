@@ -67,15 +67,14 @@ void Climate::end(AbstractDevice & device) {
     }
 }
 
-JsonDocument Climate::get_autodiscovery_json(
-    const AbstractDevice & device) const {
-    JsonDocument json = Entity::get_autodiscovery_json(device);
+PicoJson Climate::print_autodiscovery_json(const AbstractDevice & device,
+                                           Print & out) const {
+    PicoJson json = Entity::print_autodiscovery_json(device, out);
     {
-        unsigned int idx = 0;
+        PicoJson modes_json = json[F("modes")];
         for (unsigned char mode_bit = 1; mode_bit != 0; mode_bit <<= 1) {
             if ((static_cast<unsigned char>(modes) & mode_bit) != 0) {
-                json[F("modes")][idx++] =
-                    to_string(static_cast<Mode>(mode_bit));
+                modes_json.append() = to_string(static_cast<Mode>(mode_bit));
             }
         }
     }

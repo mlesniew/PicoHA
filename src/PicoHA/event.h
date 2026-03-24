@@ -9,8 +9,8 @@ public:
     Event(const PicoString & identifier, const PicoString & name)
         : Entity(identifier, name), pending(false) {}
 
-    virtual JsonDocument get_autodiscovery_json(
-        const AbstractDevice & device) const override;
+    virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
+                                              Print & out) const override;
 
     virtual void trigger() { pending = true; }
 
@@ -23,6 +23,8 @@ protected:
         const AbstractDevice & device) const override {
         return get_topic_prefix(device);
     }
+
+    void write_event(Print & out) const;
 
     bool pending;
 };

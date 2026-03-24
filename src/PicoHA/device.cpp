@@ -61,8 +61,8 @@ PicoJson Device::print_autodiscovery_json(PicoJson && e) const {
 
     auto connections = json[F("connections")];
 
-    connections[1] = {F("mac"), WiFi.macAddress().c_str()};
-    connections[2] = {F("ip"), WiFi.localIP().toString().c_str()};
+    connections[0] = {F("mac"), WiFi.macAddress().c_str()};
+    connections[1] = {F("ip"), WiFi.localIP().toString().c_str()};
 
     json[F("sw_version")] = F(__DATE__ " " __TIME__);
 
