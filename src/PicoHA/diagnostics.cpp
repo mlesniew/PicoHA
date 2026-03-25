@@ -73,21 +73,21 @@ void add_diagnostic_entities(Device & device) {
     reset_button.on_press = [] { ESP.restart(); };
     reset_button.is_diagnostic = true;
 
-    auto & free_heap_sensor =
-        device.addEntity<NumericSensor<int>>(F("free_heap"), F("Free Heap"));
+    auto & free_heap_sensor = device.addEntity<NumericSensor<uint32_t>>(
+        F("free_heap"), F("Free Heap"));
     free_heap_sensor.icon = F("memory");
     free_heap_sensor.getter =
 #if defined(ESP8266)
         ESP.getFreeHeap;
 #else
-        esp_get_free_heap_size;
+        [] { return esp_get_free_heap_size(); };
 #endif
     free_heap_sensor.unit_of_measurement = F("B");
     free_heap_sensor.device_class = F("data_size");
     free_heap_sensor.is_diagnostic = true;
     free_heap_sensor.update_interval = 60000;
 
-    auto & min_free_heap_sensor = device.addEntity<NumericSensor<int>>(
+    auto & min_free_heap_sensor = device.addEntity<NumericSensor<uint32_t>>(
         F("min_free_heap"), F("Min Free Heap"));
     min_free_heap_sensor.icon = F("memory");
     min_free_heap_sensor.getter =
@@ -108,7 +108,7 @@ void add_diagnostic_entities(Device & device) {
     min_free_heap_sensor.update_interval = 1000;
 
 #ifdef ESP8266
-    auto & max_free_block_sensor = device.addEntity<NumericSensor<int>>(
+    auto & max_free_block_sensor = device.addEntity<NumericSensor<uint32_t>>(
         F("max_free_block"), F("Max Free Block"));
     max_free_block_sensor.icon = F("memory");
     max_free_block_sensor.getter = [] { return ESP.getMaxFreeBlockSize(); };
@@ -121,7 +121,7 @@ void add_diagnostic_entities(Device & device) {
     auto & rssi_sensor =
         device.addEntity<NumericSensor<int>>(F("rssi"), F("WiFi RSSI"));
     rssi_sensor.icon = F("signal");
-    rssi_sensor.getter = [] { return WiFi.RSSI(); };
+    rssi_sensor.getter = [] { return (int)WiFi.RSSI(); };
     rssi_sensor.unit_of_measurement = F("dBm");
     rssi_sensor.device_class = F("signal_strength");
     rssi_sensor.is_diagnostic = true;
@@ -136,7 +136,7 @@ void add_diagnostic_entities(Device & device) {
     auto & wifi_channel_sensor = device.addEntity<NumericSensor<unsigned char>>(
         F("wifi_channel"), F("WiFi Channel"));
     wifi_channel_sensor.icon = F("wifi");
-    wifi_channel_sensor.getter = [] { return WiFi.channel(); };
+    wifi_channel_sensor.getter = [] { return (unsigned char)WiFi.channel(); };
     wifi_channel_sensor.is_diagnostic = true;
 
 #ifdef ESP8266
@@ -157,7 +157,7 @@ void add_diagnostic_entities(Device & device) {
             .addEntity<EnumSensor<esp_reset_reason_t, reset_reason_to_string>>(
                 F("reset_reason"), F("Reset Reason"));
     reset_reason_sensor.icon = F("timeline-question");
-    reset_reason_sensor.getter = [] { return esp_reset_reason(); };
+    reset_reason_sensor.getter = esp_reset_reason;
     reset_reason_sensor.is_diagnostic = true;
 #endif
 }

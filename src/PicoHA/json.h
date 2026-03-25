@@ -6,11 +6,11 @@
 
 class PicoJson {
 public:
-    PicoJson(Print &out) : PicoJson(out, nullptr, State::start) {}
+    PicoJson(Print & out) : PicoJson(out, nullptr, State::start) {}
 
-    PicoJson(const PicoJson &other) = delete;
+    PicoJson(const PicoJson & other) = delete;
 
-    PicoJson(PicoJson &&other)
+    PicoJson(PicoJson && other)
         : out(other.out),
           parent(other.parent),
           child(other.child),
@@ -28,7 +28,7 @@ public:
         other.state = State::closed;
     }
 
-    PicoJson &operator=(const PicoJson &other) = delete;
+    PicoJson & operator=(const PicoJson & other) = delete;
 
     bool operator=(bool value) {
         if (state == State::start) {
@@ -66,7 +66,7 @@ public:
         return nullptr;
     }
 
-    const char *operator=(const char *value) {
+    const char * operator=(const char * value) {
         if (state != State::start) {
             return value;
         }
@@ -80,12 +80,12 @@ public:
         return value;
     }
 
-    const String &operator=(const String &value) {
+    const String & operator=(const String & value) {
         *this = value.c_str();
         return value;
     }
 
-    const __FlashStringHelper *operator=(const __FlashStringHelper *value) {
+    const __FlashStringHelper * operator=(const __FlashStringHelper * value) {
         if (state != State::start) {
             return value;
         }
@@ -107,11 +107,11 @@ public:
         Value(long v) : type(Type::integer), i(v) {}
         Value(float v) : type(Type::real), d(v) {}
         Value(double v) : type(Type::real), d(v) {}
-        Value(const char *v) : type(v ? Type::cstr : Type::null_t), s(v) {}
-        Value(const __FlashStringHelper *v)
+        Value(const char * v) : type(v ? Type::cstr : Type::null_t), s(v) {}
+        Value(const __FlashStringHelper * v)
             : type(v ? Type::fstr : Type::null_t), f(v) {}
 
-        void apply(PicoJson &j) const {
+        void apply(PicoJson & j) const {
             switch (type) {
                 case Type::null_t:
                     j = nullptr;
@@ -140,13 +140,13 @@ public:
             bool b;
             long i;
             double d;
-            const char *s;
-            const __FlashStringHelper *f;
+            const char * s;
+            const __FlashStringHelper * f;
         };
     };
 
     void operator=(std::initializer_list<Value> values) {
-        for (const Value &v : values) {
+        for (const Value & v : values) {
             PicoJson item = append();
             v.apply(item);
         }
@@ -181,7 +181,7 @@ public:
         return append();
     }
 
-    PicoJson add(const char *key) {
+    PicoJson add(const char * key) {
         char c = ',';
 
         if (state == State::start) {
@@ -202,7 +202,7 @@ public:
         return PicoJson(out, nullptr, State::closed);
     }
 
-    PicoJson add(const __FlashStringHelper *key) {
+    PicoJson add(const __FlashStringHelper * key) {
         char c = ',';
 
         if (state == State::start) {
@@ -223,8 +223,8 @@ public:
         return PicoJson(out, nullptr, State::closed);
     }
 
-    PicoJson operator[](const char *key) { return add(key); }
-    PicoJson operator[](const __FlashStringHelper *key) { return add(key); }
+    PicoJson operator[](const char * key) { return add(key); }
+    PicoJson operator[](const __FlashStringHelper * key) { return add(key); }
 
     virtual ~PicoJson() {
         close();
@@ -256,10 +256,10 @@ public:
     }
 
 protected:
-    Print &out;
+    Print & out;
 
-    PicoJson *parent;
-    PicoJson *child;
+    PicoJson * parent;
+    PicoJson * child;
 
     enum class State {
         start,
@@ -268,7 +268,7 @@ protected:
         closed,
     } state;
 
-    PicoJson(Print &out, PicoJson *parent, State state = State::start)
+    PicoJson(Print & out, PicoJson * parent, State state = State::start)
         : out(out), parent(parent), child(nullptr), state(state) {}
 
     void writeChar(char c) {
@@ -303,7 +303,7 @@ protected:
         }
     }
 
-    void writeString(const char *value) {
+    void writeString(const char * value) {
         out.write('"');
         char c;
         while (value && (c = *value++)) {
@@ -312,7 +312,7 @@ protected:
         out.write('"');
     }
 
-    void writeStringPGM(const char *value) {
+    void writeStringPGM(const char * value) {
         out.write('"');
         char c;
         while (value && (c = pgm_read_byte(value++))) {

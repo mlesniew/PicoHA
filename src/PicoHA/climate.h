@@ -30,46 +30,48 @@ public:
     Mode modes;
 
     void bind_action(const Action * action) {
-        action_getter = [action] { return *action; };
+        action_getter =
+            PicoCallback<Action>([](const Action * a) { return *a; }, action);
     }
 
     void bind_power(bool * power) {
-        power_getter = [power] { return *power; };
-        power_setter = [power](bool new_value) { *power = new_value; };
+        power_getter =
+            PicoCallback<bool>([](const bool * p) { return *p; }, power);
+        power_setter = PicoCallback<void, bool>(
+            [](bool * p, bool new_value) { *p = new_value; }, power);
     }
 
     void bind_mode(Mode * mode) {
-        mode_getter = [mode] { return *mode; };
-        mode_setter = [mode](Mode new_mode) { *mode = new_mode; };
+        mode_getter =
+            PicoCallback<Mode>([](const Mode * m) { return *m; }, mode);
+        mode_setter = PicoCallback<void, Mode>(
+            [](Mode * m, Mode new_mode) { *m = new_mode; }, mode);
     }
 
     void bind_current_temperature(double * current_temperature) {
-        current_temperature_getter = [current_temperature] {
-            return *current_temperature;
-        };
+        current_temperature_getter = PicoCallback<double>(
+            [](const double * t) { return *t; }, current_temperature);
     }
 
     void bind_target_temperature(double * target_temperature) {
-        target_temperature_getter = [target_temperature] {
-            return *target_temperature;
-        };
-        target_temperature_setter = [target_temperature](double new_value) {
-            *target_temperature = new_value;
-        };
+        target_temperature_getter = PicoCallback<double>(
+            [](const double * t) { return *t; }, target_temperature);
+        target_temperature_setter = PicoCallback<void, double>(
+            [](double * t, double new_value) { *t = new_value; },
+            target_temperature);
     }
 
-    std::function<Action()> action_getter;
+    PicoCallback<Action> action_getter;
 
-    std::function<bool()> power_getter;
-    std::function<void(bool)> power_setter;
+    PicoCallback<bool> power_getter;
+    PicoCallback<void, bool> power_setter;
 
-    std::function<Mode()> mode_getter;
-    std::function<void(Mode)> mode_setter;
+    PicoCallback<Mode> mode_getter;
+    PicoCallback<void, Mode> mode_setter;
 
-    std::function<double()> current_temperature_getter;
-
-    std::function<double()> target_temperature_getter;
-    std::function<void(double)> target_temperature_setter;
+    PicoCallback<double> current_temperature_getter;
+    PicoCallback<double> target_temperature_getter;
+    PicoCallback<void, double> target_temperature_setter;
 
 protected:
     void begin(AbstractDevice & device) override;

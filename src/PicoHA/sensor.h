@@ -8,8 +8,7 @@ template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class Sensor : public EntityWithState<T, to_string> {
 public:
     Sensor(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          EntityWithState<T, to_string>(identifier, name) {}
+        : EntityWithState<T, to_string>(identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("sensor"); }
@@ -19,9 +18,7 @@ template <typename T>
 class NumericSensor : public Sensor<T> {
 public:
     NumericSensor(const PicoString & identifier, const PicoString & name = "")
-        : Entity(identifier, name),
-          Sensor<T>(identifier, name),
-          suggested_display_precision(-1) {}
+        : Sensor<T>(identifier, name), suggested_display_precision(-1) {}
 
     PicoJson print_autodiscovery_json(const AbstractDevice & device,
                                       Print & out) const override {
@@ -50,14 +47,13 @@ template <typename T, String (*to_string)(const T)>
 class EnumSensor : public Sensor<T, to_string> {
 public:
     EnumSensor(const PicoString & identifier, const PicoString & name = "")
-        : Entity(identifier, name), Sensor<T, to_string>(identifier, name) {}
+        : Sensor<T, to_string>(identifier, name) {}
 };
 
 class BinarySensor : public Sensor<bool, to_string_default<bool>> {
 public:
     BinarySensor(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          Sensor<bool, to_string_default<bool>>(identifier, name) {}
+        : Sensor<bool, to_string_default<bool>>(identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("binary_sensor"); }

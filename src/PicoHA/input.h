@@ -1,6 +1,5 @@
 #pragma once
 #include <algorithm>
-#include <functional>
 #include <vector>
 
 #include "entity.h"
@@ -11,7 +10,7 @@ class Button : public EntityWithCommand {
 public:
     using EntityWithCommand::EntityWithCommand;
 
-    std::function<void()> on_press;
+    PicoCallback<void> on_press;
 
 protected:
     virtual String get_platform() const override { return F("button"); }
@@ -24,37 +23,45 @@ protected:
 };
 
 template <typename T>
-class InputEntity : public EntityWithCommand, public EntityWithState<T> {
+class InputEntity : public EntityWithState<T> {
 public:
     InputEntity(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          EntityWithCommand(identifier, name),
-          EntityWithState<T>(identifier, name) {}
+        : EntityWithState<T>(identifier, name) {}
 
 protected:
     virtual void begin(AbstractDevice & device) override {
-        EntityWithCommand::begin(device);
         EntityWithState<T>::begin(device);
+        device.get_mqtt().subscribe(
+            get_command_topic(device),
+            [this](const String & payload) { on_command(payload); });
     }
+
+    virtual void end(AbstractDevice & device) override {
+        device.get_mqtt().unsubscribe(get_command_topic(device));
+    }
+
+    virtual String get_command_topic(
+        const AbstractDevice & device) const override {
+        return this->get_topic_prefix(device) + F("/set");
+    }
+
+    virtual void on_command(const String & command) = 0;
 
 public:
     virtual void bind(T * value) override {
         EntityWithState<T>::bind(value);
-        setter = [value](const T & new_value) { *value = new_value; };
+        setter = PicoCallback<void, T>(
+            [](T * v, T new_value) { *v = new_value; }, value);
     }
 
-    std::function<void(T)> setter;
+    PicoCallback<void, T> setter;
 };
 
 template <typename T>
 class Number : public InputEntity<T> {
 public:
     Number(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          InputEntity<T>(identifier, name),
-          min(1),
-          max(100),
-          step(1) {}
+        : InputEntity<T>(identifier, name), min(1), max(100), step(1) {}
 
     virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
                                               Print & out) const override {
@@ -82,11 +89,7 @@ protected:
 class Text : public InputEntity<String> {
 public:
     Text(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name),
-          InputEntity(identifier, name),
-          min(0),
-          max(0),
-          is_password(false) {}
+        : InputEntity(identifier, name), min(0), max(0), is_password(false) {}
 
     virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
                                               Print & out) const override {
@@ -120,7 +123,7 @@ protected:
 class Switch : public InputEntity<bool> {
 public:
     Switch(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name), InputEntity(identifier, name) {}
+        : InputEntity(identifier, name) {}
 
 protected:
     virtual String get_platform() const override { return F("switch"); }
@@ -141,14 +144,15 @@ protected:
 class Select : public InputEntity<String> {
 public:
     Select(const PicoString & identifier, const PicoString & name)
-        : Entity(identifier, name), InputEntity(identifier, name) {}
+        : InputEntity(identifier, name) {}
 
     virtual PicoJson print_autodiscovery_json(const AbstractDevice & device,
                                               Print & out) const override {
         PicoJson json = Entity::print_autodiscovery_json(device, out);
         {
+            auto options_list = json[F("options")];
             for (const String & event_type : options) {
-                json[F("options")].append() = event_type;
+                options_list.append() = event_type;
             }
         }
         return json;
