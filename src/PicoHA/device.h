@@ -21,10 +21,11 @@ template <typename T, String (*to_string)(const T)>
 class Sensor;
 template <typename T>
 class NumericSensor;
+template <typename T, String (*to_string)(const T)>
+class EnumSensor;
+class ChildDevice;
 template <typename T>
 class Number;
-
-class ChildDevice;
 
 class AbstractDevice {
 public:

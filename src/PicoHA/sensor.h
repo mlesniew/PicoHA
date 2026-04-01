@@ -76,4 +76,10 @@ inline NumericSensor<T> & AbstractDevice::addNumericSensor(
     return addEntity<NumericSensor<T>>(id, name);
 }
 
+template <typename T, String (*to_string)(const T)>
+inline EnumSensor<T, to_string> & AbstractDevice::addEnumSensor(
+    const PicoString & id, const PicoString & name) {
+    return addEntity<EnumSensor<T, to_string>>(id, name);
+}
+
 }  // namespace PicoHA
