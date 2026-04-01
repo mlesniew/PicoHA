@@ -21,7 +21,7 @@
   ],
   "dependencies": {
     "mlesniew/PicoMQTT": "^1.0.0",
-    "mlesniew/PicoString": "^0.2.0",
+    "mlesniew/PicoString": "^0.2.1",
     "mlesniew/PicoSlugify": "^0.1.0"
   }
 }
