@@ -54,7 +54,7 @@ public:
 
     template <typename T>
     T & addEntity(const PicoString & entity_id,
-                  const PicoString & entity_name = "") {
+                  const PicoString & entity_name = nullptr) {
         T * e = new T(entity_id, entity_name);
         e->next = entities;
         entities = e;
@@ -62,28 +62,36 @@ public:
     }
 
     BinarySensor & addBinarySensor(const PicoString & id,
-                                   const PicoString & name = "");
-    Event & addEvent(const PicoString & id, const PicoString & name = "");
-    Button & addButton(const PicoString & id, const PicoString & name = "");
-    Switch & addSwitch(const PicoString & id, const PicoString & name = "");
-    Text & addText(const PicoString & id, const PicoString & name = "");
-    Select & addSelect(const PicoString & id, const PicoString & name = "");
-    Climate & addClimate(const PicoString & id, const PicoString & name = "");
+                                   const PicoString & name = nullptr);
+    Event & addEvent(const PicoString & id, const PicoString & name = nullptr);
+    Button & addButton(const PicoString & id,
+                       const PicoString & name = nullptr);
+    Switch & addSwitch(const PicoString & id,
+                       const PicoString & name = nullptr);
+    Text & addText(const PicoString & id, const PicoString & name = nullptr);
+    Select & addSelect(const PicoString & id,
+                       const PicoString & name = nullptr);
+    Climate & addClimate(const PicoString & id,
+                         const PicoString & name = nullptr);
 
     template <typename T>
-    Sensor<T, to_string_default<T>> & addSensor(const PicoString & id,
-                                                const PicoString & name = "");
+    Sensor<T, to_string_default<T>> & addSensor(
+        const PicoString & id, const PicoString & name = nullptr);
     template <typename T>
     NumericSensor<T> & addNumericSensor(const PicoString & id,
-                                        const PicoString & name = "");
+                                        const PicoString & name = nullptr);
+    template <typename T, String (*to_string)(const T)>
+    EnumSensor<T, to_string> & addEnumSensor(const PicoString & id,
+                                             const PicoString & name = nullptr);
     template <typename T>
-    Number<T> & addNumber(const PicoString & id, const PicoString & name = "");
+    Number<T> & addNumber(const PicoString & id,
+                          const PicoString & name = nullptr);
 
     ChildDevice & addChildDevice(const PicoString & id,
-                                 const PicoString & name = "",
-                                 const PicoString & manufacturer = "",
-                                 const PicoString & model = "",
-                                 const PicoString & suggested_area = "");
+                                 const PicoString & name = nullptr,
+                                 const PicoString & manufacturer = nullptr,
+                                 const PicoString & model = nullptr,
+                                 const PicoString & suggested_area = nullptr);
 
     String get_default_entity_id_prefix() const {
         return PicoSlugify::slugify(name);
@@ -104,9 +112,10 @@ protected:
 
 class Device : public AbstractDevice {
 public:
-    Device(PicoMQTT::Client & mqtt, const String & name,
-           const String & manufacturer, const String & model,
-           const String & suggested_area = "")
+    Device(PicoMQTT::Client & mqtt, const PicoString & name = nullptr,
+           const PicoString & manufacturer = nullptr,
+           const PicoString & model = nullptr,
+           const PicoString & suggested_area = nullptr)
         : AbstractDevice(name, manufacturer, model, suggested_area),
           mqtt(mqtt),
           last_autodiscovery_time(0) {}
