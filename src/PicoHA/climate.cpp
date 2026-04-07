@@ -46,8 +46,8 @@ Climate::Climate(const PicoString & identifier, const PicoString & name)
       max_temp(std::numeric_limits<double>::quiet_NaN()),
       temp_step(std::numeric_limits<double>::quiet_NaN()),
       temperature_unit(TemperatureUnit::celsius),
-      modes({Mode::off | Mode::heat | Mode::automatic | Mode::cool | Mode::dry |
-             Mode::fan_only}),
+      modes(Mode::off | Mode::heat | Mode::automatic | Mode::cool | Mode::dry |
+            Mode::fan_only),
       power(false),
       mode(Mode::off),
       action(Action::off),
