@@ -1,9 +1,9 @@
 #pragma once
 
 #include <Arduino.h>
+#include <PicoCallback.h>
 #include <PicoMQTT.h>
 
-#include "callback.h"
 #include "device.h"
 #include "json.h"
 #include "utils.h"
