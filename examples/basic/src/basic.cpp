@@ -37,7 +37,7 @@ void setup() {
     Serial.begin(115200);
 
     WiFi.hostname("picoha");
-    WiFi.begin();
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
 
     mqtt.host = "192.168.1.100";
     mqtt.begin();
