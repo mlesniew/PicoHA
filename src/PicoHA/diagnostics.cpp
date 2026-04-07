@@ -7,6 +7,7 @@
 namespace {
 
 #if defined(ESP8266)
+
 String reset_reason_to_string(const rst_reason reason) {
     switch (reason) {
         case REASON_DEFAULT_RST:
@@ -63,10 +64,31 @@ String reset_reason_to_string(const esp_reset_reason_t reason) {
 namespace PicoHA {
 
 void add_diagnostic_entities(Device & device) {
-    auto & reboot_event = device.addEntity<Event>(F("reboot"), F("Reboot"));
+#if defined(ESP8266)
+    auto & reboot_event = device.addEvent<rst_reason, reset_reason_to_string>(
+        F("reboot"), F("Reboot"),
+        {REASON_DEFAULT_RST, REASON_WDT_RST, REASON_EXCEPTION_RST,
+         REASON_SOFT_WDT_RST, REASON_SOFT_RESTART, REASON_DEEP_SLEEP_AWAKE,
+         REASON_EXT_SYS_RST});
     reboot_event.icon = F("restart");
-    reboot_event.trigger();
     reboot_event.is_diagnostic = true;
+    {
+        rst_info * info = ESP.getResetInfoPtr();
+        reboot_event.trigger((rst_reason)info->reason);
+    }
+#endif
+
+#if defined(ESP32)
+    auto & reboot_event =
+        device.addEvent<esp_reset_reason_t, reset_reason_to_string>(
+            F("reboot"), F("Reboot"),
+            {ESP_RST_POWERON, ESP_RST_EXT, ESP_RST_SW, ESP_RST_PANIC,
+             ESP_RST_INT_WDT, ESP_RST_TASK_WDT, ESP_RST_WDT, ESP_RST_DEEPSLEEP,
+             ESP_RST_BROWNOUT, ESP_RST_SDIO});
+    reboot_event.icon = F("restart");
+    reboot_event.is_diagnostic = true;
+    reboot_event.trigger(esp_reset_reason());
+#endif
 
     auto & reset_button = device.addEntity<Button>(F("reset"), F("Reset"));
     reset_button.icon = F("restart");
@@ -138,28 +160,6 @@ void add_diagnostic_entities(Device & device) {
     wifi_channel_sensor.icon = F("wifi");
     wifi_channel_sensor.getter = [] { return (unsigned char)WiFi.channel(); };
     wifi_channel_sensor.is_diagnostic = true;
-
-#ifdef ESP8266
-    auto & reset_reason_sensor =
-        device.addEntity<EnumSensor<rst_reason, reset_reason_to_string>>(
-            F("reset_reason"), F("Reset Reason"));
-    reset_reason_sensor.icon = F("timeline-question");
-    reset_reason_sensor.getter = [] {
-        rst_info * info = ESP.getResetInfoPtr();
-        return (rst_reason)info->reason;
-    };
-    reset_reason_sensor.is_diagnostic = true;
-#endif
-
-#ifdef ESP32
-    auto & reset_reason_sensor =
-        device
-            .addEntity<EnumSensor<esp_reset_reason_t, reset_reason_to_string>>(
-                F("reset_reason"), F("Reset Reason"));
-    reset_reason_sensor.icon = F("timeline-question");
-    reset_reason_sensor.getter = esp_reset_reason;
-    reset_reason_sensor.is_diagnostic = true;
-#endif
 }
 
 }  // namespace PicoHA

@@ -4,6 +4,8 @@
 #include <PicoMQTT.h>
 #include <PicoSlugify.h>
 
+#include <utility>
+
 #include "json.h"
 #include "utils.h"
 
@@ -11,6 +13,7 @@ namespace PicoHA {
 
 class Entity;
 class BinarySensor;
+template <typename T, String (*to_string)(const T)>
 class Event;
 class Button;
 class Switch;
@@ -53,10 +56,10 @@ public:
     PicoString model;
     PicoString suggested_area;
 
-    template <typename T>
+    template <typename T, typename... Args>
     T & addEntity(const PicoString & entity_id,
-                  const PicoString & entity_name = nullptr) {
-        T * e = new T(entity_id, entity_name);
+                  const PicoString & entity_name = nullptr, Args &&... args) {
+        T * e = new T(entity_id, entity_name, std::forward<Args>(args)...);
         e->next = entities;
         entities = e;
         return *e;
@@ -64,7 +67,10 @@ public:
 
     BinarySensor & addBinarySensor(const PicoString & id,
                                    const PicoString & name = nullptr);
-    Event & addEvent(const PicoString & id, const PicoString & name = nullptr);
+    template <typename T, String (*to_string)(const T)>
+    inline Event<T, to_string> & addEvent(
+        const PicoString & id, const PicoString & name,
+        const std::initializer_list<T> & event_types);
     Button & addButton(const PicoString & id,
                        const PicoString & name = nullptr);
     Switch & addSwitch(const PicoString & id,
