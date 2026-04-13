@@ -113,7 +113,7 @@ public:
 
 protected:
     virtual void begin();
-    virtual void tick();
+    virtual void loop();
     virtual void fire();
     virtual void end();
     void autodiscovery();
@@ -137,7 +137,7 @@ public:
     virtual PicoJson print_autodiscovery_json(PicoJson && e) const override;
 
     virtual void begin() override;
-    virtual void tick() override;
+    virtual void loop() override;
     virtual void fire() override;
     virtual void end() override;
 

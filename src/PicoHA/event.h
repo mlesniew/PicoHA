@@ -40,7 +40,7 @@ public:
     virtual void trigger() { trigger(event_types[0]); }
 
 protected:
-    virtual void tick(AbstractDevice & device) override { fire(device); }
+    virtual void loop(AbstractDevice & device) override { fire(device); }
 
     virtual void fire(AbstractDevice & device) override {
         auto & mqtt = device.get_mqtt();

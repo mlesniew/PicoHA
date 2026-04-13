@@ -75,7 +75,7 @@ public:
 
 protected:
     void begin(AbstractDevice & device) override;
-    void tick(AbstractDevice & device) override;
+    void loop(AbstractDevice & device) override;
     void fire(AbstractDevice & device) override;
     void end(AbstractDevice & device) override;
 

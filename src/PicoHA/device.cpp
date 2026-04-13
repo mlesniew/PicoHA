@@ -79,13 +79,13 @@ void AbstractDevice::begin() {
     }
 }
 
-void AbstractDevice::tick() {
+void AbstractDevice::loop() {
     for (ChildDevice * d = devices; d; d = d->next) {
-        d->tick();
+        d->loop();
     }
 
     for (Entity * e = entities; e; e = e->next) {
-        e->tick(*this);
+        e->loop(*this);
     }
 }
 
@@ -145,7 +145,7 @@ void Device::begin() {
     AbstractDevice::begin();
 }
 
-void Device::tick() {
+void Device::loop() {
     if (!mqtt.connected()) {
         return;
     }
@@ -160,7 +160,7 @@ void Device::tick() {
         fire();
     }
 
-    AbstractDevice::tick();
+    AbstractDevice::loop();
 }
 
 void Device::fire() { AbstractDevice::fire(); }

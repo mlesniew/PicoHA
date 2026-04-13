@@ -39,7 +39,7 @@ public:
 
 protected:
     virtual void begin(AbstractDevice & device) {}
-    virtual void tick(AbstractDevice & device) {}
+    virtual void loop(AbstractDevice & device) {}
     virtual void fire(AbstractDevice & device) {}
     virtual void end(AbstractDevice & device) {}
 
@@ -93,7 +93,7 @@ protected:
         }
     }
 
-    void tick(AbstractDevice & device) override {
+    void loop(AbstractDevice & device) override {
         if (!getter) {
             return;
         }

@@ -166,7 +166,7 @@ void Climate::begin(AbstractDevice & device) {
     }
 }
 
-void Climate::tick(AbstractDevice & device) {
+void Climate::loop(AbstractDevice & device) {
     if (power_getter) {
         bool new_power = power_getter();
         if (new_power != power) {
