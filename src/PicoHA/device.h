@@ -15,6 +15,7 @@ class Entity;
 class BinarySensor;
 template <typename T, String (*to_string)(const T)>
 class Event;
+class SimpleEvent;
 class Button;
 class Switch;
 class Text;
@@ -67,10 +68,12 @@ public:
 
     BinarySensor & addBinarySensor(const PicoString & id,
                                    const PicoString & name = nullptr);
-    template <typename T, String (*to_string)(const T)>
-    inline Event<T, to_string> & addEvent(
+    template <typename T = PicoString,
+              String (*to_string)(const T) = to_string_default<T>>
+    Event<T, to_string> & addEvent(
         const PicoString & id, const PicoString & name,
         const std::initializer_list<T> & event_types);
+    SimpleEvent & addEvent(const PicoString & id, const PicoString & name);
     Button & addButton(const PicoString & id,
                        const PicoString & name = nullptr);
     Switch & addSwitch(const PicoString & id,

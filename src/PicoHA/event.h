@@ -8,7 +8,8 @@
 
 namespace PicoHA {
 
-template <typename T, String (*to_string)(const T)>
+template <typename T = PicoString,
+          String (*to_string)(T) = to_string_default<T>>
 class Event : public Entity {
 public:
     Event(const PicoString & identifier, const PicoString & name,
@@ -36,7 +37,7 @@ public:
         }
     }
 
-    void trigger() { trigger(event_types[0]); }
+    virtual void trigger() { trigger(event_types[0]); }
 
 protected:
     virtual void tick(AbstractDevice & device) override { fire(device); }
@@ -71,11 +72,25 @@ protected:
     T pending_event;
 };
 
-template <typename T, String (*to_string)(const T)>
+class SimpleEvent : public Event<PicoString, to_string_default<PicoString>> {
+public:
+    SimpleEvent(const PicoString & identifier, const PicoString & name)
+        : Event(identifier, name, {identifier}) {}
+
+    virtual void trigger() override { Event::trigger(identifier); }
+};
+
+template <typename T = PicoString,
+          String (*to_string)(T) = to_string_default<T>>
 inline Event<T, to_string> & AbstractDevice::addEvent(
     const PicoString & id, const PicoString & name,
     const std::initializer_list<T> & event_types) {
     return addEntity<Event<T, to_string>>(id, name, event_types);
+}
+
+inline SimpleEvent & AbstractDevice::addEvent(const PicoString & id,
+                                              const PicoString & name) {
+    return addEntity<SimpleEvent>(id, name);
 }
 
 }  // namespace PicoHA

@@ -6,6 +6,7 @@ PicoMQTT::Client mqtt;
 
 PicoHA::Device device{mqtt, "PicoHA", "mlesniew", "picoha", ""};
 
+bool ping_pong_state = false;
 bool binarino;
 String text = "PicoHA";
 String color = "Red";
@@ -14,8 +15,8 @@ int power = 10;
 PicoHA::BinarySensor * binary_sensor;
 PicoHA::NumericSensor<size_t> * text_lenght_sensor;
 
-PicoHA::Event * pingpong_event;
-PicoHA::Event * reboot_event;
+PicoHA::Event<PicoString> * pingpong_event;
+PicoHA::SimpleEvent * reboot_event;
 
 PicoHA::Switch * onoff_switch;
 PicoHA::Text * text_input;
@@ -44,27 +45,27 @@ void setup() {
 
     PicoHA::add_diagnostic_entities(device);
 
-    binary_sensor =
-        &device.addEntity<PicoHA::BinarySensor>("binarino", "Binarino");
+    binary_sensor = &device.addBinarySensor("binarino", "Binarino");
     binary_sensor->bind(&binarino);
     binary_sensor->device_class = "power";
 
-    text_lenght_sensor = &device.addEntity<PicoHA::NumericSensor<size_t>>(
-        "text_length", "Text Length");
+    text_lenght_sensor =
+        &device.addNumericSensor<size_t>("text_length", "Text Length");
     text_lenght_sensor->getter = [] { return text.length(); };
     text_lenght_sensor->icon = "dog";
 
-    pingpong_event = &device.addEntity<PicoHA::Event>("pingpong", "Ping Pong");
-    reboot_event = &device.addEntity<PicoHA::Event>("reboot", "Reboot");
+    pingpong_event =
+        &device.addEvent<PicoString>("pingpong", "Ping Pong", {"ping", "pong"});
+    reboot_event = &device.addEvent("reboot", "Reboot");
     reboot_event->trigger();
 
-    onoff_switch = &device.addEntity<PicoHA::Switch>("onoff", "Toggle");
+    onoff_switch = &device.addSwitch("onoff", "Toggle");
     onoff_switch->bind(&binarino);
 
-    text_input = &device.addEntity<PicoHA::Text>("text", "Text");
+    text_input = &device.addText("text", "Text");
     text_input->bind(&text);
 
-    reset_button = &device.addEntity<PicoHA::Button>("reset", "Reset");
+    reset_button = &device.addButton("reset", "Reset");
     reset_button->on_press = [] {
         text = "PicoHA";
         color = "Red";
@@ -72,16 +73,16 @@ void setup() {
         power = 10;
     };
 
-    input_select = &device.addEntity<PicoHA::Select>("color", "Color");
+    input_select = &device.addSelect("color", "Color");
     input_select->options = {"Red", "Yellow", "Green"};
     input_select->bind(&color);
 
-    power_input = &device.addEntity<PicoHA::Number<int>>("power", "Power");
+    power_input = &device.addNumber<int>("power", "Power");
     power_input->bind(&power);
 
     auto & climate_device = device.addChildDevice(
         "climate", "Climate", "mlesniew", "picoha-climate", "");
-    climate = &climate_device.addEntity<PicoHA::Climate>("climate", "");
+    climate = &climate_device.addClimate("climate", "");
     climate->min_temp = 15;
     climate->max_temp = 30;
     climate->temp_step = 0.5;
@@ -117,7 +118,8 @@ void loop() {
         if (millis() - last_event > 5000) {
             Serial.println("Tick!");
 
-            pingpong_event->trigger();
+            pingpong_event->trigger(ping_pong_state ? "ping" : "pong");
+            ping_pong_state = !ping_pong_state;
             last_event = millis();
 
             binarino = !binarino;
@@ -133,7 +135,7 @@ void loop() {
     }
 
     {
-        // climate logic
+        // climate logicclimate_state
         if (climate_state.mode == PicoHA::Climate::Mode::off) {
             climate_state.action = PicoHA::Climate::Action::off;
         } else {
