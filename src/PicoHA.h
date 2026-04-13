@@ -1,6 +1,7 @@
 #pragma once
 
 #include "PicoHA/climate.h"
+#include "PicoHA/cover.h"
 #include "PicoHA/device.h"
 #include "PicoHA/diagnostics.h"
 #include "PicoHA/entity.h"

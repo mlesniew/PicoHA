@@ -23,8 +23,11 @@ PicoHA::Text * text_input;
 PicoHA::Button * reset_button;
 PicoHA::Select * input_select;
 PicoHA::Number<int> * power_input;
-
+PicoHA::Cover * cover;
 PicoHA::Climate * climate;
+
+int cover_position = 100;
+PicoHA::Cover::State cover_state = PicoHA::Cover::State::open;
 
 struct {
     double current_temperature;
@@ -103,6 +106,23 @@ void setup() {
         };
     };
 
+    cover = &device.addCover("Cover", "cover");
+    cover->position_getter = [] { return cover_position; };
+    cover->state_getter = [] { return cover_state; };
+    cover->command_setter = [](const PicoHA::Cover::Command command) {
+        switch (command) {
+            case PicoHA::Cover::Command::open:
+                cover_state = PicoHA::Cover::State::opening;
+                break;
+            case PicoHA::Cover::Command::close:
+                cover_state = PicoHA::Cover::State::closing;
+                break;
+            case PicoHA::Cover::Command::stop:
+                cover_state = PicoHA::Cover::State::stopped;
+                break;
+        }
+    };
+
     device.begin();
 
     Serial.println("Setup complete");
@@ -131,6 +151,27 @@ void loop() {
                         PicoHA::Climate::Action::cooling)
                            ? -0.1
                            : 0);
+
+            switch (cover_state) {
+                case PicoHA::Cover::State::opening:
+                    cover_position += 20;
+                    if (cover_position >= 100) {
+                        cover_position = 100;
+                        cover_state = PicoHA::Cover::State::open;
+                    }
+                    break;
+                case PicoHA::Cover::State::closing:
+                    cover_position -= 20;
+                    if (cover_position <= 0) {
+                        cover_position = 0;
+                        cover_state = PicoHA::Cover::State::closed;
+                    }
+                    break;
+                case PicoHA::Cover::State::stopped:
+                case PicoHA::Cover::State::open:
+                case PicoHA::Cover::State::closed:
+                    break;
+            }
         }
     }
 

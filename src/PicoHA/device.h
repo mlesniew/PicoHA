@@ -16,6 +16,7 @@ class BinarySensor;
 template <typename T, String (*to_string)(const T)>
 class Event;
 class SimpleEvent;
+class Cover;
 class Button;
 class Switch;
 class Text;
@@ -83,6 +84,7 @@ public:
                        const PicoString & name = nullptr);
     Climate & addClimate(const PicoString & id,
                          const PicoString & name = nullptr);
+    Cover & addCover(const PicoString & id, const PicoString & name = nullptr);
 
     template <typename T>
     Sensor<T, to_string_default<T>> & addSensor(
