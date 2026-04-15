@@ -59,7 +59,7 @@ void Cover::begin(AbstractDevice & device) {
 
     if (position_setter) {
         mqtt.subscribe(
-            get_command_topic(device) + F("/position/set"),
+            get_topic_prefix(device) + F("/position/set"),
             [this](const char * payload) {
                 if (!position_setter) return;
                 int value = atoi(payload);
@@ -107,7 +107,7 @@ void Cover::end(AbstractDevice & device) {
     }
 
     if (position_setter) {
-        mqtt.unsubscribe(get_command_topic(device) + F("/position/set"));
+        mqtt.unsubscribe(get_topic_prefix(device) + F("/position/set"));
     }
 }
 
