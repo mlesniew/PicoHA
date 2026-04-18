@@ -130,7 +130,7 @@ void setup() {
 
 void loop() {
     mqtt.loop();
-    device.tick();
+    device.loop();
 
     {
         static unsigned long last_event = millis();
