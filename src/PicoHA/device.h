@@ -130,7 +130,7 @@ public:
            const PicoString & suggested_area = nullptr)
         : AbstractDevice(name, manufacturer, model, suggested_area),
           mqtt(mqtt),
-          last_autodiscovery_time(0) {}
+          last_connect_time(0) {}
 
     virtual ~Device();
 
@@ -171,7 +171,7 @@ public:
 
 protected:
     PicoMQTT::Client & mqtt;
-    unsigned long last_autodiscovery_time;
+    unsigned long last_connect_time;
 };
 
 class ChildDevice : public AbstractDevice {

@@ -117,6 +117,8 @@ void AbstractDevice::autodiscovery() {
     for (Entity * e = entities; e; e = e->next) {
         e->autodiscovery(*this);
     }
+
+    fire();
 }
 
 Device::~Device() { end(); }
@@ -133,14 +135,26 @@ void Device::begin() {
     mqtt.connected_callback = [this] {
         // send autodiscovery messages
         autodiscovery();
-        last_autodiscovery_time = millis();
+
+        // schedule next autodiscovery in 30 seconds to ensure Home Assistant
+        // picks up the device
+        last_connect_time = millis();
 
         // notify about availability
         mqtt.publish(get_availability_topic(), F("online"), 0, true);
-
-        // publish right away
-        fire();
     };
+
+    mqtt.subscribe(F("homeassistant/status"),
+                   PicoCallback<void, const char *>(
+                       [](Device * device, const char * payload) {
+                           if (strcmp_P(payload, PSTR("online")) == 0) {
+                               // Home Assistant just came online, schedule
+                               // autodiscovery to ensure it picks up the device
+                               device->last_connect_time = millis();
+                           }
+                       },
+                       this),
+                   10);
 
     AbstractDevice::begin();
 }
@@ -150,14 +164,9 @@ void Device::loop() {
         return;
     }
 
-    if (last_autodiscovery_time &&
-        (millis() - last_autodiscovery_time >= 30 * 1000)) {
-        // It's been 30 seconds since we last sent autodiscovery messages,
-        // Home Assistant should now have discovered us and subscribed to
-        // all topics.  Resend all measurements to ensure Home Assistant
-        // has the latest values.
-        last_autodiscovery_time = 0;
-        fire();
+    if (last_connect_time && (millis() - last_connect_time >= 15 * 1000)) {
+        autodiscovery();
+        last_connect_time = 0;
     }
 
     AbstractDevice::loop();
