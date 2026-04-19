@@ -1,8 +1,18 @@
 #pragma once
 
 #include "entity.h"
+#include "utils.h"
 
 namespace PicoHA {
+
+template <typename T>
+String to_string_numeric_sensor(const T value) {
+    if (std::isnan(value)) {
+        return F("None");
+    } else {
+        return String(value);
+    }
+}
 
 template <typename T, String (*to_string)(const T) = to_string_default<T>>
 class Sensor : public EntityWithState<T, to_string> {
@@ -15,14 +25,17 @@ protected:
 };
 
 template <typename T>
-class NumericSensor : public Sensor<T> {
+class NumericSensor : public Sensor<T, to_string_numeric_sensor<T>> {
 public:
     NumericSensor(const PicoString & identifier, const PicoString & name = "")
-        : Sensor<T>(identifier, name), suggested_display_precision(-1) {}
+        : Sensor<T, to_string_numeric_sensor<T>>(identifier, name),
+          suggested_display_precision(-1) {}
 
     PicoJson print_autodiscovery_json(const AbstractDevice & device,
                                       Print & out) const override {
-        PicoJson json = Sensor<T>::print_autodiscovery_json(device, out);
+        PicoJson json =
+            Sensor<T, to_string_numeric_sensor<T>>::print_autodiscovery_json(
+                device, out);
 
         if (unit_of_measurement.isEmpty()) {
             json[F("unit_of_measurement")] = nullptr;
