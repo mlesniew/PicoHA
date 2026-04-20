@@ -28,6 +28,14 @@ public:
     InputEntity(const PicoString & identifier, const PicoString & name)
         : EntityWithState<T>(identifier, name) {}
 
+    virtual void bind(T * value) override {
+        EntityWithState<T>::bind(value);
+        setter = PicoCallback<void, T>(
+            [](T * v, T new_value) { *v = new_value; }, value);
+    }
+
+    PicoCallback<void, T> setter;
+
 protected:
     virtual void begin(AbstractDevice & device) override {
         EntityWithState<T>::begin(device);
@@ -46,15 +54,6 @@ protected:
     }
 
     virtual void on_command(const String & command) = 0;
-
-public:
-    virtual void bind(T * value) override {
-        EntityWithState<T>::bind(value);
-        setter = PicoCallback<void, T>(
-            [](T * v, T new_value) { *v = new_value; }, value);
-    }
-
-    PicoCallback<void, T> setter;
 };
 
 template <typename T>

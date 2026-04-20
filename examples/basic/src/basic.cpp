@@ -37,6 +37,26 @@ struct {
 } climate_state = {22.5, 24.0, PicoHA::Climate::Mode::heat,
                    PicoHA::Climate::Action::heating};
 
+enum class FanMode {
+    normal,
+    quiet,
+    turbo,
+} fan_mode;
+
+String to_string(const FanMode fm) {
+    switch (fm) {
+        case FanMode::quiet:
+            return F("quiet");
+        case FanMode::turbo:
+            return F("turbo");
+        case FanMode::normal:
+        default:
+            return F("normal");
+    }
+}
+
+PicoHA::FanWithPresetModes<FanMode, to_string> * fan;
+
 void setup() {
     Serial.begin(115200);
 
@@ -122,6 +142,11 @@ void setup() {
                 break;
         }
     };
+
+    fan = &device.addFanWithPresetModes<FanMode, to_string>(
+        "fan", "Fan", {FanMode::normal, FanMode::turbo, FanMode::quiet});
+    fan->bind(&binarino);
+    fan->bind_preset(&fan_mode);
 
     device.begin();
 

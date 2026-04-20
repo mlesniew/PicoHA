@@ -31,6 +31,9 @@ class EnumSensor;
 class ChildDevice;
 template <typename T>
 class Number;
+class Fan;
+template <typename T, String (*to_string)(T)>
+class FanWithPresetModes;
 
 class AbstractDevice {
 public:
@@ -98,6 +101,13 @@ public:
     template <typename T>
     Number<T> & addNumber(const PicoString & id,
                           const PicoString & name = nullptr);
+
+    Fan & addFan(const PicoString & id, const PicoString & name = nullptr);
+
+    template <typename T, String (*to_string)(T)>
+    FanWithPresetModes<T, to_string> & addFanWithPresetModes(
+        const PicoString & id, const PicoString & name,
+        const std::initializer_list<T> & preset_modes);
 
     ChildDevice & addChildDevice(const PicoString & id,
                                  const PicoString & name = nullptr,
