@@ -5,7 +5,7 @@ namespace PicoHA {
 Entity::Entity(const PicoString & identifier, const PicoString & name)
     : identifier(smart_slugify(identifier)),
       name(name),
-      is_diagnostic(false),
+      category(Category::normal),
       enabled_by_default(true),
       next(nullptr) {}
 
@@ -26,8 +26,9 @@ PicoJson Entity::print_autodiscovery_json(const AbstractDevice & device,
     if (!device_class.isEmpty()) {
         json[F("device_class")] = device_class;
     }
-    if (is_diagnostic) {
-        json[F("entity_category")] = F("diagnostic");
+    if (category != Category::normal) {
+        json[F("entity_category")] =
+            category == Category::diagnostic ? F("diagnostic") : F("config");
     }
     if (!enabled_by_default) {
         json[F("enabled_by_default")] = false;

@@ -12,6 +12,12 @@ namespace PicoHA {
 
 class Entity {
 public:
+    enum class Category {
+        normal,
+        diagnostic,
+        config,
+    };
+
     Entity(const PicoString & identifier, const PicoString & name);
     virtual ~Entity() {}
 
@@ -32,7 +38,7 @@ public:
     PicoString name;
     PicoString icon;
     PicoString device_class;
-    bool is_diagnostic;
+    Category category;
     bool enabled_by_default;
 
     friend class AbstractDevice;
